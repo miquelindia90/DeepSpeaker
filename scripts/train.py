@@ -291,7 +291,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--train_data_dir",
         type=str,
-        default="/scratch/speaker_databases/",
+        default="/scratch/speaker_databases/VoxCeleb-2/dev",
         help="data directory.",
     )
     parser.add_argument(
@@ -300,12 +300,16 @@ if __name__ == "__main__":
         default="/scratch/speaker_databases/VoxCeleb-1/wav",
         help="data directory.",
     )
-    parser.add_argument("--train_labels_path", type=str, default="labels/Vox2.ndx")
+    parser.add_argument("--train_labels_path", type=str, default="labels/sc_labels.ndx")
     parser.add_argument(
         "--data_mode", type=str, default="normal", choices=["normal", "window"]
     )
-    parser.add_argument("--valid_clients", type=str, default="labels/clients.ndx")
-    parser.add_argument("--valid_impostors", type=str, default="labels/impostors.ndx")
+    parser.add_argument(
+        "--valid_clients", type=str, default="labels/sv_clients_hard_reduced.ndx"
+    )
+    parser.add_argument(
+        "--valid_impostors", type=str, default="labels/sv_impostors_hard_reduced.ndx"
+    )
     parser.add_argument(
         "--out_dir",
         type=str,
