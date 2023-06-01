@@ -329,7 +329,7 @@ if __name__ == "__main__":
         "--front_end",
         type=str,
         default="VGG4L",
-        choices=["VGG3L", "VGG4L"],
+        choices=["VGG4L"],
         help="Kind of Front-end Used",
     )
 
