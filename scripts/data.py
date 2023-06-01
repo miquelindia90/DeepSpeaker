@@ -4,18 +4,10 @@ from random import randint, randrange
 from torch.utils import data
 import soundfile as sf
 
-def featureReader(featurePath, VAD=None):
+def featureReader(featurePath):
 
     with open(featurePath,'rb') as pickleFile:
         features = pickle.load(pickleFile)
-        if VAD is not None:
-            filtered_features = VAD.filter(features)
-        else:
-            filtered_features = features
-
-    if filtered_features.shape[1]>0.:
-        return np.transpose(filtered_features)
-    else:
         return np.transpose(features)
 
 def normalizeFeatures(features, normalization='cmn'):
