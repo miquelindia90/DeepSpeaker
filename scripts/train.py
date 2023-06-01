@@ -43,17 +43,14 @@ class Trainer:
             self.optimizer.load_state_dict(checkpoint["optimizer"])
             self.params = checkpoint["settings"]
             self.starting_epoch = checkpoint["epoch"] + 1
-            self.step = checkpoint["step"]
             print('Model "%s" is Loaded for requeue process' % file2load)
         else:
-            self.step = 0
             self.starting_epoch = 1
 
     def __initialize_training_variables(self):
         if self.params.requeue:
             self.__load_previous_states()
         else:
-            self.step = 0
             self.starting_epoch = 0
 
         self.best_EER = 50.0
@@ -168,12 +165,6 @@ class Trainer:
             EER = 50.00
         return EER
 
-    def __getAnnealedFactor(self):
-        if torch.cuda.device_count() > 1:
-            return self.net.module.predictionLayer.getAnnealedFactor(self.step)
-        else:
-            return self.net.predictionLayer.getAnnealedFactor(self.step)
-
     def __validate(self):
         with torch.no_grad():
             valid_time = time.time()
@@ -188,12 +179,9 @@ class Trainer:
             # Compute EER
             EER = self.__calculate_EER(CL, IM)
 
-            annealedFactor = self.__getAnnealedFactor()
-            print("Annealed Factor is {}.".format(annealedFactor))
             print(
-                "--Validation Epoch:{epoch: d}, Updates:{Num_Batch: d}, EER:{eer: 3.3f}, elapse:{elapse: 3.3f} min".format(
+                "--Validation Epoch:{epoch: d}, EER:{eer: 3.3f}, elapse:{elapse: 3.3f} min".format(
                     epoch=self.epoch,
-                    Num_Batch=self.step,
                     eer=EER,
                     elapse=(time.time() - valid_time) / 60,
                 )
@@ -203,7 +191,7 @@ class Trainer:
                 self.best_EER = EER
                 self.stopping = 0
                 print("We found a better model!")
-                chkptsave(params, self.net, self.optimizer, self.epoch, self.step)
+                chkptsave(params, self.net, self.optimizer, self.epoch)
             else:
                 self.stopping += 1
                 print(
@@ -217,23 +205,16 @@ class Trainer:
     def __update(self):
         self.optimizer.step()
         self.optimizer.zero_grad()
-        self.step += 1
 
-        if self.step % int(self.params.print_every) == 0:
-            print(
-                "Training Epoch:{epoch: d}, Updates:{Num_Batch: d} -----> xent:{xnet: .3f}, Accuracy:{acc: .2f}, elapse:{elapse: 3.3f} min".format(
-                    epoch=self.epoch,
-                    Num_Batch=self.step,
-                    xnet=self.train_loss / self.train_batch,
-                    acc=self.train_accuracy * 100 / self.train_batch,
-                    elapse=(time.time() - self.print_time) / 60,
-                )
-            )
-            self.__initialize_batch_variables()
-
-        # validation
-        if self.step % self.params.validate_every == 0:
-            self.__validate()
+        # print(
+        #    "Training Epoch:{epoch: d}, -----> xent:{xnet: .3f}, Accuracy:{acc: .2f}, elapse:{elapse: 3.3f} min".format(
+        #        epoch=self.epoch,
+        #        xnet=self.train_loss / self.train_batch,
+        #        acc=self.train_accuracy * 100 / self.train_batch,
+        #        elapse=(time.time() - self.print_time) / 60,
+        #        )
+        #    )
+        self.__initialize_batch_variables()
 
     def __updateTrainningVariables(self):
         if (self.stopping + 1) % 15 == 0:
@@ -250,7 +231,7 @@ class Trainer:
                 input, label = input.float().to(self.device), label.long().to(
                     self.device
                 )
-                prediction, AMPrediction = self.net(input, label=label, step=self.step)
+                prediction, AMPrediction = self.net(input, label=label)
                 loss = self.criterion(AMPrediction, label)
                 loss.backward()
                 self.train_accuracy += Accuracy(prediction, label)
@@ -259,6 +240,8 @@ class Trainer:
                 self.train_batch += 1
                 if self.train_batch % self.params.gradientAccumulation == 0:
                     self.__update()
+
+            self.__validate()
 
             if self.stopping > self.params.early_stopping:
                 print("--Best Model EER%%: %.2f" % (self.best_EER))
@@ -297,7 +280,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--valid_data_dir",
         type=str,
-        default="/scratch/speaker_databases/VoxCeleb-1/wav",
+        default="/scratch/speaker_databases/VoxCeleb-2/dev",
         help="data directory.",
     )
     parser.add_argument("--train_labels_path", type=str, default="labels/sc_labels.ndx")
@@ -357,7 +340,6 @@ if __name__ == "__main__":
     # AMSoftmax Config
     parser.add_argument("--scalingFactor", type=float, default=30.0, help="")
     parser.add_argument("--marginFactor", type=float, default=0.4, help="")
-    parser.add_argument("--annealing", action="store_true")
 
     # Optimization
     parser.add_argument(

@@ -20,7 +20,6 @@ class SpeakerClassifier(nn.Module):
             parameters.num_spkrs,
             s=parameters.scalingFactor,
             m=parameters.marginFactor,
-            annealing=parameters.annealing,
         )
 
     def __initFrontEnd(self, parameters):
@@ -63,13 +62,13 @@ class SpeakerClassifier(nn.Module):
 
         return embedding2
 
-    def forward(self, x, label=None, step=0):
+    def forward(self, x, label=None):
         encoder_output = self.front_end(x)
 
         embedding0, alignment = self.poolingLayer(encoder_output)
         embedding1 = F.relu(self.fc1(embedding0))
         embedding2 = self.b2(F.relu(self.fc2(embedding1)))
         embedding3 = self.preLayer(embedding2)
-        prediction, ouputTensor = self.predictionLayer(embedding3, label, step)
+        prediction, ouputTensor = self.predictionLayer(embedding3, label)
 
         return prediction, ouputTensor
