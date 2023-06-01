@@ -13,7 +13,6 @@ def getVGG4LOutputDimension(inputDimension, outputChannel=128):
     return int(outputDimension) * outputChannel
 
 
-
 class VGG4L(torch.nn.Module):
     def __init__(self, kernel_size):
         super(VGG4L, self).__init__()

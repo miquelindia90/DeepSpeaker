@@ -24,7 +24,6 @@ class SpeakerClassifier(nn.Module):
         )
 
     def __initFrontEnd(self, parameters):
-        
         if parameters.front_end == "VGG4L":
             self.vector_size = getVGG4LOutputDimension(
                 parameters.feature_size, outputChannel=parameters.kernel_size
