@@ -239,10 +239,6 @@ class Trainer:
         if (self.stopping + 1) % 15 == 0:
             self.__update_optimizer()
 
-    def __randomSlice(self, inputTensor):
-        index = random.randrange(200, self.params.window_size * 100)
-        return inputTensor[:, :index, :]
-
     def train(self):
         print("Start Training")
         for self.epoch in range(
@@ -253,9 +249,6 @@ class Trainer:
             for input, label in self.training_generator:
                 input, label = input.float().to(self.device), label.long().to(
                     self.device
-                )
-                input = (
-                    self.__randomSlice(input) if self.params.randomSlicing else input
                 )
                 prediction, AMPrediction = self.net(input, label=label, step=self.step)
                 loss = self.criterion(AMPrediction, label)
