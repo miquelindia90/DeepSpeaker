@@ -4,63 +4,63 @@ from random import randint, randrange
 from torch.utils import data
 import soundfile as sf
 
-def featureReader(featurePath):
 
-    with open(featurePath,'rb') as pickleFile:
+def featureReader(featurePath):
+    with open(featurePath, "rb") as pickleFile:
         features = pickle.load(pickleFile)
         return np.transpose(features)
 
-def normalizeFeatures(features, normalization='cmn'):
 
+def normalizeFeatures(features, normalization="cmn"):
     mean = np.mean(features, axis=0)
-    features -= mean 
-    if normalization=='cmn':
-       return features
-    if normalization=='cmvn':
+    features -= mean
+    if normalization == "cmn":
+        return features
+    if normalization == "cmvn":
         std = np.std(features, axis=0)
-        std = np.where(std>0.01,std,1.0)
-        return features/std
+        std = np.where(std > 0.01, std, 1.0)
+        return features / std
+
 
 class Dataset(data.Dataset):
-
     def __init__(self, utterances, parameters):
-        'Initialization'
+        "Initialization"
         self.utterances = utterances
         self.parameters = parameters
         self.num_samples = len(utterances)
 
     def __normalize(self, features):
         mean = np.mean(features, axis=0)
-        features -= mean 
-        if self.parameters.normalization=='cmn':
+        features -= mean
+        if self.parameters.normalization == "cmn":
             return features
-        if self.parameters.normalization=='cmvn':
+        if self.parameters.normalization == "cmvn":
             std = np.std(features, axis=0)
-            std = np.where(std>0.01,std,1.0)
-            return features/std
+            std = np.where(std > 0.01, std, 1.0)
+            return features / std
 
     def __sampleSpectogramWindow(self, features):
         file_size = features.shape[0]
-        windowSizeInFrames = self.parameters.window_size*100
-        index = randint(0, max(0,file_size-windowSizeInFrames-1))
-        a = np.array(range(min(file_size, int(windowSizeInFrames))))+index
-        return features[a,:]
+        windowSizeInFrames = self.parameters.window_size * 100
+        index = randint(0, max(0, file_size - windowSizeInFrames - 1))
+        a = np.array(range(min(file_size, int(windowSizeInFrames)))) + index
+        return features[a, :]
 
     def __getFeatureVector(self, utteranceName):
-
-        with open(utteranceName + '.pickle','rb') as pickleFile:
+        with open(utteranceName + ".pickle", "rb") as pickleFile:
             features = pickle.load(pickleFile)
-        windowedFeatures = self.__sampleSpectogramWindow(self.__normalize(np.transpose(features)))
-        return windowedFeatures            
-     
+        windowedFeatures = self.__sampleSpectogramWindow(
+            self.__normalize(np.transpose(features))
+        )
+        return windowedFeatures
+
     def __len__(self):
         return self.num_samples
 
     def __getitem__(self, index):
-        'Generates one sample of data'
+        "Generates one sample of data"
         utteranceTuple = self.utterances[index].strip().split()
-        utteranceName = self.parameters.train_data_dir + '/' + utteranceTuple[0]
+        utteranceName = self.parameters.train_data_dir + "/" + utteranceTuple[0]
         utteranceLabel = int(utteranceTuple[1])
-        
-        return self.__getFeatureVector(utteranceName), np.array(utteranceLabel)
 
+        return self.__getFeatureVector(utteranceName), np.array(utteranceLabel)
