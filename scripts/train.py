@@ -191,14 +191,10 @@ class Trainer:
                 self.best_EER = EER
                 self.stopping = 0
                 print("We found a better model!")
-                chkptsave(params, self.net, self.optimizer, self.epoch)
+                chkptsave(params, self.net, self.optimizer, self.epoch, None)
             else:
                 self.stopping += 1
-                print(
-                    "Better Accuracy is: {}. {} epochs of no improvement".format(
-                        self.best_EER, self.stopping
-                    )
-                )
+                
             self.print_time = time.time()
             self.net.train()
 
