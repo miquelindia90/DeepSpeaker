@@ -10,6 +10,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 from torch import optim
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 sys.path.append("./scripts/")
 from data import *
@@ -108,9 +109,8 @@ class Trainer:
         self.criterion = nn.CrossEntropyLoss()
 
     def __initialize_batch_variables(self):
-        self.print_time = time.time()
-        self.train_loss = 0.0
-        self.train_accuracy = 0.0
+        self.train_loss = [None] * len(self.training_generator)
+        self.train_accuracy = [None] * len(self.training_generator)
         self.train_batch = 0
 
     def __extractInputFromFeature(self, sline):
@@ -194,27 +194,41 @@ class Trainer:
                 chkptsave(params, self.net, self.optimizer, self.epoch, None)
             else:
                 self.stopping += 1
-                
-            self.print_time = time.time()
+
             self.net.train()
 
     def __update(self):
         self.optimizer.step()
         self.optimizer.zero_grad()
 
-        # print(
-        #    "Training Epoch:{epoch: d}, -----> xent:{xnet: .3f}, Accuracy:{acc: .2f}, elapse:{elapse: 3.3f} min".format(
-        #        epoch=self.epoch,
-        #        xnet=self.train_loss / self.train_batch,
-        #        acc=self.train_accuracy * 100 / self.train_batch,
-        #        elapse=(time.time() - self.print_time) / 60,
-        #        )
-        #    )
-        self.__initialize_batch_variables()
-
     def __updateTrainningVariables(self):
         if (self.stopping + 1) % 15 == 0:
             self.__update_optimizer()
+
+    def __update_metrics(self, accuracy, loss, batch_looper):
+        self.train_accuracy[self.train_batch] = accuracy
+        self.train_loss[self.train_batch] = loss.item()
+        self.train_batch += 1
+        batch_looper.set_description(f"Epoch [{self.epoch}/{self.params.max_epochs}]")
+        batch_looper.set_postfix(
+            loss=sum(
+                self.train_loss[
+                    self.train_batch
+                    - 1
+                    - self.params.print_metric_window : self.train_batch
+                ]
+            )
+            / self.train_batch,
+            acc=sum(
+                self.train_accuracy[
+                    self.train_batch
+                    - 1
+                    - self.params.print_metric_window : self.train_batch
+                ]
+            )
+            * 100
+            / self.train_batch,
+        )
 
     def train(self):
         print("Start Training")
@@ -223,17 +237,15 @@ class Trainer:
         ):  # loop over the dataset multiple times
             self.net.train()
             self.__initialize_batch_variables()
-            for input, label in self.training_generator:
+            batch_looper = tqdm(self.training_generator)
+            for input, label in batch_looper:
                 input, label = input.float().to(self.device), label.long().to(
                     self.device
                 )
                 prediction, AMPrediction = self.net(input, label=label)
                 loss = self.criterion(AMPrediction, label)
                 loss.backward()
-                self.train_accuracy += Accuracy(prediction, label)
-                self.train_loss += loss.item()
-
-                self.train_batch += 1
+                self.__update_metrics(Accuracy(prediction, label), loss, batch_looper)
                 if self.train_batch % self.params.gradientAccumulation == 0:
                     self.__update()
 
@@ -353,13 +365,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max_epochs",
         type=int,
-        default=1000000,
+        default=500,
         help="number of full passes through the trainning data",
     )
     parser.add_argument(
         "--early_stopping", type=int, default=25, help="-1 if not early stopping"
     )
-    parser.add_argument("--print_every", type=int, default=1000)
+    parser.add_argument("--print_metric_window", type=int, default=1000)
     parser.add_argument(
         "--requeue",
         action="store_true",
