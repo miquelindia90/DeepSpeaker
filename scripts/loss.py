@@ -12,27 +12,18 @@ class AMSoftmax(nn.Module):
     https://github.com/clovaai/voxceleb_trainer/blob/master/loss/cosface.py
     """
 
-    def __init__(self, in_feats, n_classes, m=0.3, s=15, annealing=False):
+    def __init__(self, in_feats, n_classes, m=0.3, s=15):
         super(AMSoftmax, self).__init__()
         self.in_feats = in_feats
         self.m = m
         self.s = s
-        self.annealing = annealing
         self.W = torch.nn.Parameter(
             torch.randn(in_feats, n_classes), requires_grad=True
         )
         nn.init.xavier_normal_(self.W, gain=1)
-        self.annealing = annealing
 
-    def getAnnealedFactor(self, step):
-        alpha = self.__getAlpha(step) if self.annealing else 0.0
-        return 1 / (1 + alpha)
-
-    def __getAlpha(self, step):
-        return max(0, 1000.0 / (pow(1.0 + 0.0001 * float(step), 2.0)))
-
-    def __getCombinedCosth(self, costh, costh_m, step):
-        alpha = self.__getAlpha(step) if self.annealing else 0.0
+    def __getCombinedCosth(self, costh, costh_m):
+        alpha = 0.0
         costh_combined = costh_m + alpha * costh
         return costh_combined / (1 + alpha)
 
@@ -51,7 +42,7 @@ class AMSoftmax(nn.Module):
         if x.is_cuda:
             delt_costh = delt_costh.cuda()
         costh_m = costh - delt_costh
-        costh_combined = self.__getCombinedCosth(costh, costh_m, step)
+        costh_combined = self.__getCombinedCosth(costh, costh_m)
         costh_m_s = self.s * costh_combined
         return costh, costh_m_s
 
