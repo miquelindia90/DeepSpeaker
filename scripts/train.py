@@ -218,7 +218,7 @@ class Trainer:
                     - self.params.print_metric_window : self.train_batch
                 ]
             )
-            / self.train_batch,
+            / min(self.train_batch, self.params.print_metric_window),
             acc=sum(
                 self.train_accuracy[
                     self.train_batch
@@ -227,7 +227,7 @@ class Trainer:
                 ]
             )
             * 100
-            / self.train_batch,
+            / min(self.train_batch, self.params.print_metric_window),
         )
 
     def train(self):
