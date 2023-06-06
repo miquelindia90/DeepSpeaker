@@ -209,25 +209,18 @@ class Trainer:
         self.train_accuracy[self.train_batch] = accuracy
         self.train_loss[self.train_batch] = loss.item()
         self.train_batch += 1
+        index_range = slice(
+            max(0, self.train_batch - self.params.print_metric_window), self.train_batch
+        )
+        index_len = (
+            self.train_batch
+            if self.train_batch < self.params.print_metric_window
+            else self.params.print_metric_window
+        )
         batch_looper.set_description(f"Epoch [{self.epoch}/{self.params.max_epochs}]")
         batch_looper.set_postfix(
-            loss=sum(
-                self.train_loss[
-                    self.train_batch
-                    - 1
-                    - self.params.print_metric_window : self.train_batch
-                ]
-            )
-            / min(self.train_batch, self.params.print_metric_window),
-            acc=sum(
-                self.train_accuracy[
-                    self.train_batch
-                    - 1
-                    - self.params.print_metric_window : self.train_batch
-                ]
-            )
-            * 100
-            / min(self.train_batch, self.params.print_metric_window),
+            loss=sum(self.train_loss[index_range]) / index_len,
+            acc=sum(self.train_accuracy[index_range]) * 100 / index_len,
         )
 
     def train(self):
