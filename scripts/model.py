@@ -51,7 +51,9 @@ class SpeakerClassifier(nn.Module):
         self.b1 = nn.BatchNorm1d(parameters["embedding_size"])
         self.fc2 = nn.Linear(parameters["embedding_size"], parameters["embedding_size"])
         self.b2 = nn.BatchNorm1d(parameters["embedding_size"])
-        self.preLayer = nn.Linear(parameters["embedding_size"], parameters["embedding_size"])
+        self.preLayer = nn.Linear(
+            parameters["embedding_size"], parameters["embedding_size"]
+        )
         self.b3 = nn.BatchNorm1d(parameters["embedding_size"])
 
     def getEmbedding(self, x):

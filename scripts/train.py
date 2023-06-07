@@ -269,8 +269,6 @@ if __name__ == "__main__":
     with open(
         params["out_dir"] + "/" + params["model_name"] + "_config.yaml", "w"
     ) as handle:
-        yaml.dump(
-            params, stream=handle, default_flow_style=False, sort_keys=False
-        )
+        yaml.dump(params, stream=handle, default_flow_style=False, sort_keys=False)
 
     main(params)
