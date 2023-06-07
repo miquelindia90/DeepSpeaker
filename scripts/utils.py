@@ -76,7 +76,6 @@ def getModelName(params):
         + "_{}s".format(params["scalingFactor"])
         + "_{}m".format(params["marginFactor"])
     )
-    
 
     model_name += "_{}".format(params["pooling_method"]) + "_{}".format(
         params["heads_number"]
