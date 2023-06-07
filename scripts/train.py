@@ -30,9 +30,9 @@ class Trainer:
         self.__initialize_training_variables()
 
     def __load_previous_states(self):
-        list_files = os.listdir(self.params.out_dir)
+        list_files = os.listdir(self.params["out_dir"])
         list_files = [
-            self.params.out_dir + "/" + f for f in list_files if ".chkpt" in f
+            self.params["out_dir"] + "/" + f for f in list_files if ".chkpt" in f
         ]
         if list_files:
             file2load = max(list_files, key=os.path.getctime)
@@ -49,7 +49,7 @@ class Trainer:
             self.starting_epoch = 1
 
     def __initialize_training_variables(self):
-        if self.params.requeue:
+        if self.params["requeue"]:
             self.__load_previous_states()
         else:
             self.starting_epoch = 0
@@ -67,43 +67,29 @@ class Trainer:
 
     def __load_data(self):
         print("Loading Data and Labels")
-        with open(self.params.train_labels_path, "r") as data_labels_file:
+        with open(self.params["train_labels_path"], "r") as data_labels_file:
             train_labels = data_labels_file.readlines()
 
         data_loader_parameters = {
-            "batch_size": self.params.batch_size,
+            "batch_size": self.params["batch_size"],
             "shuffle": True,
-            "num_workers": self.params.num_workers,
+            "num_workers": self.params["num_workers"],
         }
         self.training_generator = DataLoader(
             Dataset(train_labels, self.params), **data_loader_parameters
         )
 
     def __load_optimizer(self):
-        if self.params.optimizer == "Adam":
-            self.optimizer = optim.Adam(
-                self.net.parameters(),
-                lr=self.params.learning_rate,
-                weight_decay=self.params.weight_decay,
-            )
-        if self.params.optimizer == "SGD":
-            self.optimizer = optim.SGD(
-                self.net.parameters(),
-                lr=self.params.learning_rate,
-                weight_decay=self.params.weight_decay,
-            )
-        if self.params.optimizer == "RMSprop":
-            self.optimizer = optim.RMSprop(
-                self.net.parameters(),
-                lr=self.params.learning_rate,
-                weight_decay=self.params.weight_decay,
-            )
+        self.optimizer = optim.Adam(
+            self.net.parameters(),
+            lr=self.params["learning_rate"],
+            weight_decay=self.params["weight_decay"],
+        )
 
     def __update_optimizer(self):
-        if self.params.optimizer == "SGD" or self.params.optimizer == "Adam":
-            for paramGroup in self.optimizer.param_groups:
-                paramGroup["lr"] *= 0.5
-            print("New Learning Rate: {}".format(paramGroup["lr"]))
+        for paramGroup in self.optimizer.param_groups:
+            paramGroup["lr"] *= 0.5
+        print("New Learning Rate: {}".format(paramGroup["lr"]))
 
     def __load_criterion(self):
         self.criterion = nn.CrossEntropyLoss()
@@ -115,12 +101,12 @@ class Trainer:
 
     def __extractInputFromFeature(self, sline):
         features1 = normalizeFeatures(
-            featureReader(self.params.valid_data_dir + "/" + sline[0] + ".pickle"),
-            normalization=self.params.normalization,
+            featureReader(self.params["valid_data_dir"] + "/" + sline[0] + ".pickle"),
+            normalization=self.params["normalization"],
         )
         features2 = normalizeFeatures(
-            featureReader(self.params.valid_data_dir + "/" + sline[1] + ".pickle"),
-            normalization=self.params.normalization,
+            featureReader(self.params["valid_data_dir"] + "/" + sline[1] + ".pickle"),
+            normalization=self.params["normalization"],
         )
 
         input1 = torch.FloatTensor(features1).to(self.device)
@@ -210,14 +196,17 @@ class Trainer:
         self.train_loss[self.train_batch] = loss.item()
         self.train_batch += 1
         index_range = slice(
-            max(0, self.train_batch - self.params.print_metric_window), self.train_batch
+            max(0, self.train_batch - self.params["print_metric_window"]),
+            self.train_batch,
         )
         index_len = (
             self.train_batch
-            if self.train_batch < self.params.print_metric_window
-            else self.params.print_metric_window
+            if self.train_batch < self.params["print_metric_window"]
+            else self.params["print_metric_window"]
         )
-        batch_looper.set_description(f"Epoch [{self.epoch}/{self.params.max_epochs}]")
+        batch_looper.set_description(
+            f"Epoch [{self.epoch}/{self.params['max_epochs']}]"
+        )
         batch_looper.set_postfix(
             loss=sum(self.train_loss[index_range]) / index_len,
             acc=sum(self.train_accuracy[index_range]) * 100 / index_len,
@@ -226,7 +215,7 @@ class Trainer:
     def train(self):
         print("Start Training")
         for self.epoch in range(
-            self.starting_epoch, self.params.max_epochs
+            self.starting_epoch, self.params["max_epochs"]
         ):  # loop over the dataset multiple times
             self.net.train()
             self.__initialize_batch_variables()
@@ -239,12 +228,12 @@ class Trainer:
                 loss = self.criterion(AMPrediction, label)
                 loss.backward()
                 self.__update_metrics(Accuracy(prediction, label), loss, batch_looper)
-                if self.train_batch % self.params.gradientAccumulation == 0:
+                if self.train_batch % self.params["gradientAccumulation"] == 0:
                     self.__update()
 
             self.__validate()
 
-            if self.stopping > self.params.early_stopping:
+            if self.stopping > self.params["early_stopping"]:
                 print("--Best Model EER%%: %.2f" % (self.best_EER))
                 break
 
@@ -253,21 +242,19 @@ class Trainer:
         print("Finished Training")
 
 
-def main(opt):
-
+def main(params):
     print("Defining Device")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
     print(torch.cuda.get_device_name(0))
 
     print("Loading Trainer")
-    trainer = Trainer(opt, device)
+    trainer = Trainer(params, device)
     trainer.train()
 
 
 if __name__ == "__main__":
-    
-    config_path = sys.argv[1] # parse input params
+    config_path = sys.argv[1]  # parse input params
 
     with open(config_path, "rb") as handle:
         params = yaml.load(handle, Loader=yaml.FullLoader)
@@ -279,9 +266,11 @@ if __name__ == "__main__":
     if not os.path.exists(params["out_dir"]):
         os.makedirs(params["out_dir"])
 
-  
-    with open(params["out_dir"] + "/" + params["model_name"] + "_config.yaml", "w") as handle:
-        params = yaml.dump(params, stream=handle, default_flow_style=False, sort_keys=False)
+    with open(
+        params["out_dir"] + "/" + params["model_name"] + "_config.yaml", "w"
+    ) as handle:
+        params = yaml.dump(
+            params, stream=handle, default_flow_style=False, sort_keys=False
+        )
 
-    sys.exit(0)   
     main(params)
