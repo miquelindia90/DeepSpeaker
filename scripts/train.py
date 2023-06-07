@@ -156,8 +156,8 @@ class Trainer:
             valid_time = time.time()
             self.net.eval()
             # EER Validation
-            with open(params.valid_clients, "r") as clients_in, open(
-                params.valid_impostors, "r"
+            with open(params["valid_clients"], "r") as clients_in, open(
+                params["valid_impostors"], "r"
             ) as impostors_in:
                 # score clients
                 CL = self.__extract_scores(clients_in)
