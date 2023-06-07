@@ -32,16 +32,16 @@ class Dataset(data.Dataset):
     def __normalize(self, features):
         mean = np.mean(features, axis=0)
         features -= mean
-        if self.parameters.normalization == "cmn":
+        if self.parameters["normalization"] == "cmn":
             return features
-        if self.parameters.normalization == "cmvn":
+        if self.parameters["normalization"] == "cmvn":
             std = np.std(features, axis=0)
             std = np.where(std > 0.01, std, 1.0)
             return features / std
 
     def __sampleSpectogramWindow(self, features):
         file_size = features.shape[0]
-        windowSizeInFrames = self.parameters.window_size * 100
+        windowSizeInFrames = self.parameters["window_size"] * 100
         index = randint(0, max(0, file_size - windowSizeInFrames - 1))
         a = np.array(range(min(file_size, int(windowSizeInFrames)))) + index
         return features[a, :]
@@ -60,7 +60,7 @@ class Dataset(data.Dataset):
     def __getitem__(self, index):
         "Generates one sample of data"
         utteranceTuple = self.utterances[index].strip().split()
-        utteranceName = self.parameters.train_data_dir + "/" + utteranceTuple[0]
+        utteranceName = self.parameters["train_data_dir"] + "/" + utteranceTuple[0]
         utteranceLabel = int(utteranceTuple[1])
 
         return self.__getFeatureVector(utteranceName), np.array(utteranceLabel)
