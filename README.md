@@ -75,7 +75,7 @@ Once you have all these data files ready, you can launch a model training with t
 
 
 ```bash
-python scripts/train.py
+python scripts/train.py config/config.yaml
 ```
 
-With this script you will launch the model training with the default setup defined in `scripts/train.py`. The model will be trained following the methods and procedures described in the paper. The best models found will be saved in the `--out_dir` directory. You will find there a `.pkl` file with the training/model configuration and several checkpoint `.pt` files which store model weghts, optimizer state values, etc. The best saved models correspond to the last saved checkpoints.
+With this script you will launch the model training with the default setup defined in `config/config.yaml`. The model will be trained following the methods and procedures described in the paper. The best models found will be saved in the `--out_dir` directory. You will find there a `.yaml` file with the training/model configuration and several checkpoint `.pt` files which store model weghts, optimizer state values, etc. The best saved models correspond to the last saved checkpoints.
