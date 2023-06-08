@@ -1,15 +1,15 @@
 import os
 import sys
-import argparse
-import numpy as np
-import random
-import pickle
+import yaml
 import time
+
+
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from torch import optim
 from torch.utils.data import DataLoader
+import numpy as np
 from tqdm import tqdm
 
 sys.path.append("./scripts/")
@@ -30,9 +30,9 @@ class Trainer:
         self.__initialize_training_variables()
 
     def __load_previous_states(self):
-        list_files = os.listdir(self.params.out_dir)
+        list_files = os.listdir(self.params["out_dir"])
         list_files = [
-            self.params.out_dir + "/" + f for f in list_files if ".chkpt" in f
+            self.params["out_dir"] + "/" + f for f in list_files if ".chkpt" in f
         ]
         if list_files:
             file2load = max(list_files, key=os.path.getctime)
@@ -49,7 +49,7 @@ class Trainer:
             self.starting_epoch = 1
 
     def __initialize_training_variables(self):
-        if self.params.requeue:
+        if self.params["requeue"]:
             self.__load_previous_states()
         else:
             self.starting_epoch = 0
@@ -67,43 +67,29 @@ class Trainer:
 
     def __load_data(self):
         print("Loading Data and Labels")
-        with open(self.params.train_labels_path, "r") as data_labels_file:
+        with open(self.params["train_labels_path"], "r") as data_labels_file:
             train_labels = data_labels_file.readlines()
 
         data_loader_parameters = {
-            "batch_size": self.params.batch_size,
+            "batch_size": self.params["batch_size"],
             "shuffle": True,
-            "num_workers": self.params.num_workers,
+            "num_workers": self.params["num_workers"],
         }
         self.training_generator = DataLoader(
             Dataset(train_labels, self.params), **data_loader_parameters
         )
 
     def __load_optimizer(self):
-        if self.params.optimizer == "Adam":
-            self.optimizer = optim.Adam(
-                self.net.parameters(),
-                lr=self.params.learning_rate,
-                weight_decay=self.params.weight_decay,
-            )
-        if self.params.optimizer == "SGD":
-            self.optimizer = optim.SGD(
-                self.net.parameters(),
-                lr=self.params.learning_rate,
-                weight_decay=self.params.weight_decay,
-            )
-        if self.params.optimizer == "RMSprop":
-            self.optimizer = optim.RMSprop(
-                self.net.parameters(),
-                lr=self.params.learning_rate,
-                weight_decay=self.params.weight_decay,
-            )
+        self.optimizer = optim.Adam(
+            self.net.parameters(),
+            lr=self.params["learning_rate"],
+            weight_decay=self.params["weight_decay"],
+        )
 
     def __update_optimizer(self):
-        if self.params.optimizer == "SGD" or self.params.optimizer == "Adam":
-            for paramGroup in self.optimizer.param_groups:
-                paramGroup["lr"] *= 0.5
-            print("New Learning Rate: {}".format(paramGroup["lr"]))
+        for paramGroup in self.optimizer.param_groups:
+            paramGroup["lr"] *= 0.5
+        print("New Learning Rate: {}".format(paramGroup["lr"]))
 
     def __load_criterion(self):
         self.criterion = nn.CrossEntropyLoss()
@@ -115,12 +101,12 @@ class Trainer:
 
     def __extractInputFromFeature(self, sline):
         features1 = normalizeFeatures(
-            featureReader(self.params.valid_data_dir + "/" + sline[0] + ".pickle"),
-            normalization=self.params.normalization,
+            featureReader(self.params["valid_data_dir"] + "/" + sline[0] + ".pickle"),
+            normalization=self.params["normalization"],
         )
         features2 = normalizeFeatures(
-            featureReader(self.params.valid_data_dir + "/" + sline[1] + ".pickle"),
-            normalization=self.params.normalization,
+            featureReader(self.params["valid_data_dir"] + "/" + sline[1] + ".pickle"),
+            normalization=self.params["normalization"],
         )
 
         input1 = torch.FloatTensor(features1).to(self.device)
@@ -170,8 +156,8 @@ class Trainer:
             valid_time = time.time()
             self.net.eval()
             # EER Validation
-            with open(params.valid_clients, "r") as clients_in, open(
-                params.valid_impostors, "r"
+            with open(params["valid_clients"], "r") as clients_in, open(
+                params["valid_impostors"], "r"
             ) as impostors_in:
                 # score clients
                 CL = self.__extract_scores(clients_in)
@@ -210,14 +196,17 @@ class Trainer:
         self.train_loss[self.train_batch] = loss.item()
         self.train_batch += 1
         index_range = slice(
-            max(0, self.train_batch - self.params.print_metric_window), self.train_batch
+            max(0, self.train_batch - self.params["print_metric_window"]),
+            self.train_batch,
         )
         index_len = (
             self.train_batch
-            if self.train_batch < self.params.print_metric_window
-            else self.params.print_metric_window
+            if self.train_batch < self.params["print_metric_window"]
+            else self.params["print_metric_window"]
         )
-        batch_looper.set_description(f"Epoch [{self.epoch}/{self.params.max_epochs}]")
+        batch_looper.set_description(
+            f"Epoch [{self.epoch}/{self.params['max_epochs']}]"
+        )
         batch_looper.set_postfix(
             loss=sum(self.train_loss[index_range]) / index_len,
             acc=sum(self.train_accuracy[index_range]) * 100 / index_len,
@@ -226,7 +215,7 @@ class Trainer:
     def train(self):
         print("Start Training")
         for self.epoch in range(
-            self.starting_epoch, self.params.max_epochs
+            self.starting_epoch, self.params["max_epochs"]
         ):  # loop over the dataset multiple times
             self.net.train()
             self.__initialize_batch_variables()
@@ -239,12 +228,12 @@ class Trainer:
                 loss = self.criterion(AMPrediction, label)
                 loss.backward()
                 self.__update_metrics(Accuracy(prediction, label), loss, batch_looper)
-                if self.train_batch % self.params.gradientAccumulation == 0:
+                if self.train_batch % self.params["gradientAccumulation"] == 0:
                     self.__update()
 
             self.__validate()
 
-            if self.stopping > self.params.early_stopping:
+            if self.stopping > self.params["early_stopping"]:
                 print("--Best Model EER%%: %.2f" % (self.best_EER))
                 break
 
@@ -253,136 +242,33 @@ class Trainer:
         print("Finished Training")
 
 
-def main(opt):
-    torch.manual_seed(1234)
-    np.random.seed(1234)
-
+def main(params):
     print("Defining Device")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
     print(torch.cuda.get_device_name(0))
 
     print("Loading Trainer")
-    trainer = Trainer(opt, device)
+    trainer = Trainer(params, device)
     trainer.train()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Train a VGG based Speaker Embedding Extractor"
-    )
+    config_path = sys.argv[1]  # parse input params
 
-    parser.add_argument(
-        "--train_data_dir",
-        type=str,
-        default="/scratch/speaker_databases/VoxCeleb-2/dev",
-        help="data directory.",
-    )
-    parser.add_argument(
-        "--valid_data_dir",
-        type=str,
-        default="/scratch/speaker_databases/VoxCeleb-2/dev",
-        help="data directory.",
-    )
-    parser.add_argument("--train_labels_path", type=str, default="labels/sc_labels.ndx")
-    parser.add_argument(
-        "--data_mode", type=str, default="normal", choices=["normal", "window"]
-    )
-    parser.add_argument(
-        "--valid_clients", type=str, default="labels/sv_clients_hard_reduced.ndx"
-    )
-    parser.add_argument(
-        "--valid_impostors", type=str, default="labels/sv_impostors_hard_reduced.ndx"
-    )
-    parser.add_argument(
-        "--out_dir",
-        type=str,
-        default="./models/model1",
-        help="directory where data is saved",
-    )
-    parser.add_argument(
-        "--model_name",
-        type=str,
-        default="CNN",
-        help="Model associated to the model builded",
-    )
-    parser.add_argument(
-        "--front_end",
-        type=str,
-        default="VGG4L",
-        choices=["VGG4L"],
-        help="Kind of Front-end Used",
-    )
+    with open(config_path, "rb") as handle:
+        params = yaml.load(handle, Loader=yaml.FullLoader)
 
-    # Network Parameteres
-    parser.add_argument(
-        "--window_size", type=float, default=3.5, help="number of seconds per window"
-    )
-    parser.add_argument(
-        "--normalization", type=str, default="cmn", choices=["cmn", "cmvn"]
-    )
-    parser.add_argument("--kernel_size", type=int, default=1024)
-    parser.add_argument("--embedding_size", type=int, default=400)
-    parser.add_argument("--heads_number", type=int, default=32)
-    parser.add_argument(
-        "--pooling_method",
-        type=str,
-        default="DoubleMHA",
-        choices=["Attention", "MHA", "DoubleMHA"],
-        help="Type of pooling methods",
-    )
-    parser.add_argument(
-        "--mask_prob",
-        type=float,
-        default=0.3,
-        help="Masking Drop Probability. Only Used for Only Double MHA",
-    )
+    params["model_name"] = getModelName(params)
+    params["num_spkrs"] = getNumberOfSpeakers(params["train_labels_path"])
+    print("{} Speaker Labels".format(params["num_spkrs"]))
 
-    # AMSoftmax Config
-    parser.add_argument("--scalingFactor", type=float, default=30.0, help="")
-    parser.add_argument("--marginFactor", type=float, default=0.4, help="")
+    if not os.path.exists(params["out_dir"]):
+        os.makedirs(params["out_dir"])
 
-    # Optimization
-    parser.add_argument(
-        "--optimizer", type=str, choices=["Adam", "SGD", "RMSprop"], default="Adam"
-    )
-    parser.add_argument("--learning_rate", type=float, default=0.0001, help="")
-    parser.add_argument("--weight_decay", type=float, default=0.001, help="")
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        default=64,
-        help="number of sequences to train on in parallel",
-    )
-    parser.add_argument("--gradientAccumulation", type=int, default=2)
-    parser.add_argument(
-        "--max_epochs",
-        type=int,
-        default=500,
-        help="number of full passes through the trainning data",
-    )
-    parser.add_argument(
-        "--early_stopping", type=int, default=25, help="-1 if not early stopping"
-    )
-    parser.add_argument("--print_metric_window", type=int, default=1000)
-    parser.add_argument(
-        "--requeue",
-        action="store_true",
-        help="restart from the last model for requeue on slurm",
-    )
-    parser.add_argument("--validate_every", type=int, default=10000)
-    parser.add_argument("--num_workers", type=int, default=2)
-
-    # parse input params
-    params = parser.parse_args()
-    params.model_name = getModelName(params)
-    params.num_spkrs = getNumberOfSpeakers(params.train_labels_path)
-    print("{} Speaker Labels".format(params.num_spkrs))
-
-    if not os.path.exists(params.out_dir):
-        os.makedirs(params.out_dir)
-
-    with open(params.out_dir + "/" + params.model_name + "_config.pkl", "wb") as handle:
-        pickle.dump(params, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(
+        params["out_dir"] + "/" + params["model_name"] + "_config.yaml", "w"
+    ) as handle:
+        yaml.dump(params, stream=handle, default_flow_style=False, sort_keys=False)
 
     main(params)

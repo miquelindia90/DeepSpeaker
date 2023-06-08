@@ -20,13 +20,13 @@ def scoreCosineDistance(emb1, emb2):
     return dist
 
 
-def chkptsave(opt, model, optimizer, epoch, step):
+def chkptsave(parameters, model, optimizer, epoch, step):
     """function to save the model and optimizer parameters"""
     if torch.cuda.device_count() > 1:
         checkpoint = {
             "model": model.module.state_dict(),
             "optimizer": optimizer.state_dict(),
-            "settings": opt,
+            "settings": parameters,
             "epoch": epoch,
             "step": step,
         }
@@ -34,12 +34,15 @@ def chkptsave(opt, model, optimizer, epoch, step):
         checkpoint = {
             "model": model.state_dict(),
             "optimizer": optimizer.state_dict(),
-            "settings": opt,
+            "settings": parameters,
             "epoch": epoch,
             "step": step,
         }
 
-    torch.save(checkpoint, "{}/{}_{}.chkpt".format(opt.out_dir, opt.model_name, step))
+    torch.save(
+        checkpoint,
+        "{}/{}_{}.chkpt".format(parameters["out_dir"], parameters["model_name"], step),
+    )
 
 
 def Accuracy(pred, labels):
@@ -62,23 +65,23 @@ def getNumberOfSpeakers(labelsFilePath):
 
 
 def getModelName(params):
-    model_name = params.model_name
+    model_name = params["model_name"]
 
     model_name = (
         model_name
-        + "_{}".format(params.front_end)
-        + "_{}".format(params.window_size)
-        + "_{}batchSize".format(params.batch_size * params.gradientAccumulation)
-        + "_{}lr".format(params.learning_rate)
-        + "_{}weightDecay".format(params.weight_decay)
-        + "_{}kernel".format(params.kernel_size)
-        + "_{}embSize".format(params.embedding_size)
-        + "_{}s".format(params.scalingFactor)
-        + "_{}m".format(params.marginFactor)
+        + "_{}".format(params["front_end"])
+        + "_{}".format(params["window_size"])
+        + "_{}batchSize".format(params["batch_size"] * params["gradientAccumulation"])
+        + "_{}lr".format(params["learning_rate"])
+        + "_{}weightDecay".format(params["weight_decay"])
+        + "_{}kernel".format(params["kernel_size"])
+        + "_{}embSize".format(params["embedding_size"])
+        + "_{}s".format(params["scalingFactor"])
+        + "_{}m".format(params["marginFactor"])
     )
 
-    model_name += "_{}".format(params.pooling_method) + "_{}".format(
-        params.heads_number
+    model_name += "_{}".format(params["pooling_method"]) + "_{}".format(
+        params["heads_number"]
     )
 
     return model_name

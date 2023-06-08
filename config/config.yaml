@@ -1,0 +1,40 @@
+# I/O Parameters
+
+train_data_dir: "/scratch/speaker_databases/VoxCeleb-2/dev"
+valid_data_dir: "/scratch/speaker_databases/VoxCeleb-2/dev"
+train_labels_path: "labels/sc_labels.ndx"
+valid_clients: "labels/sv_clients_hard.ndx"
+valid_impostors: "labels/sv_impostors_hard.ndx"
+out_dir: "./models/model1"
+model_name: "CNN"
+requeue: False
+
+# Network Parameteres
+
+front_end: "VGG4L"
+window_size: 3.5
+normalization: "cmn"
+kernel_size: 1024
+embedding_size: 400
+heads_number: 32
+pooling_method: "DoubleMHA"
+mask_prob: 0.3
+
+# AMSoftmax Config
+
+scalingFactor: 30.0
+marginFactor: 0.4
+
+# Optimization
+
+optimizer: "Adam"
+learning_rate: 0.0001
+weight_decay: 0.001
+batch_size: 64
+gradientAccumulation: 2
+max_epochs: 500
+early_stopping: 25
+num_workers: 2
+
+# Logging
+print_metric_window: 1000
