@@ -7,16 +7,20 @@ import torchaudio
 
 def feature_extractor(audio_path):
     waveform, sample_rate = torchaudio.load(audio_path)
-    sample_spectogram = torchaudio.transforms.MelSpectrogram(
-        n_fft=512,
-        win_length=int(sample_rate * 0.025),
-        hop_length=int(sample_rate * 0.01),
-        n_mels=80,
-        f_max=sample_rate // 2,
-        normalized=True,
-    )(waveform).squeeze(0).transpose(0, 1)
+    sample_spectogram = (
+        torchaudio.transforms.MelSpectrogram(
+            n_fft=512,
+            win_length=int(sample_rate * 0.025),
+            hop_length=int(sample_rate * 0.01),
+            n_mels=80,
+            f_max=sample_rate // 2,
+            normalized=True,
+        )(waveform)
+        .squeeze(0)
+        .transpose(0, 1)
+    )
     mean = torch.mean(sample_spectogram, dim=0)
-    return sample_spectogram-mean
+    return sample_spectogram - mean
 
 
 class Dataset(data.Dataset):
