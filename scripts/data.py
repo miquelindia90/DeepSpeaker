@@ -4,6 +4,19 @@ from torch.utils import data
 import torchaudio
 
 
+def feature_extractor(audio_path):
+    waveform, sample_rate = torchaudio.load(audio_path)
+    sample_spectogram = torchaudio.transforms.MelSpectrogram(
+        n_fft=512,
+        win_length=int(sampleRate * 0.025),
+        hop_length=int(sampleRate * 0.01),
+        n_mels=80,
+        f_max=sampleRate // 2,
+        normalized=True,
+    )(waveform).squeeze(0)
+    return sample_spectogram.transpose(0, 1)
+
+
 class Dataset(data.Dataset):
     def __init__(self, utterances, parameters, sampleRate=16000):
         "Initialization"

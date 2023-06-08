@@ -13,7 +13,7 @@ import numpy as np
 from tqdm import tqdm
 
 sys.path.append("./scripts/")
-from data import *
+from data import Dataset, feature_extractor
 from model import SpeakerClassifier
 from loss import *
 from utils import *
@@ -100,13 +100,11 @@ class Trainer:
         self.train_batch = 0
 
     def __extractInputFromFeature(self, sline):
-        features1 = normalizeFeatures(
-            featureReader(self.params["valid_data_dir"] + "/" + sline[0] + ".pickle"),
-            normalization=self.params["normalization"],
+        features1 = feature_extractor(
+            self.params["valid_data_dir"] + "/" + sline[0] + ".wav"
         )
-        features2 = normalizeFeatures(
-            featureReader(self.params["valid_data_dir"] + "/" + sline[1] + ".pickle"),
-            normalization=self.params["normalization"],
+        features2 = feature_extractor(
+            self.params["valid_data_dir"] + "/" + sline[1] + ".wav"
         )
 
         input1 = torch.FloatTensor(features1).to(self.device)
