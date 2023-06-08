@@ -20,13 +20,13 @@ def scoreCosineDistance(emb1, emb2):
     return dist
 
 
-def chkptsave(opt, model, optimizer, epoch, step):
+def chkptsave(parameters, model, optimizer, epoch, step):
     """function to save the model and optimizer parameters"""
     if torch.cuda.device_count() > 1:
         checkpoint = {
             "model": model.module.state_dict(),
             "optimizer": optimizer.state_dict(),
-            "settings": opt,
+            "settings": parameters,
             "epoch": epoch,
             "step": step,
         }
@@ -34,12 +34,15 @@ def chkptsave(opt, model, optimizer, epoch, step):
         checkpoint = {
             "model": model.state_dict(),
             "optimizer": optimizer.state_dict(),
-            "settings": opt,
+            "settings": parameters,
             "epoch": epoch,
             "step": step,
         }
 
-    torch.save(checkpoint, "{}/{}_{}.chkpt".format(opt.out_dir, opt.model_name, step))
+    torch.save(
+        checkpoint,
+        "{}/{}_{}.chkpt".format(parameters["out_dir"], parameters["model_name"], step),
+    )
 
 
 def Accuracy(pred, labels):
