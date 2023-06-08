@@ -1,5 +1,6 @@
 import numpy as np
 from random import randint
+import torch
 from torch.utils import data
 import torchaudio
 
@@ -13,8 +14,9 @@ def feature_extractor(audio_path):
         n_mels=80,
         f_max=sample_rate // 2,
         normalized=True,
-    )(waveform).squeeze(0)
-    return sample_spectogram.transpose(0, 1)
+    )(waveform).squeeze(0).transpose(0, 1)
+    mean = torch.mean(sample_spectogram, dim=0)
+    return sample_spectogram-mean
 
 
 class Dataset(data.Dataset):
@@ -39,13 +41,18 @@ class Dataset(data.Dataset):
         a = np.array(range(min(file_size, int(windowSizeInFrames)))) + index
         return features[a, :]
 
+    def __normalize_features(self, features):
+        mean = torch.mean(features, dim=0)
+        features -= mean
+        return features
+
     def __getFeatureVector(self, utteranceName):
         waveform, sample_rate = torchaudio.load(utteranceName + ".wav")
         sample_spectogram = self.spectogram_extractor(waveform).squeeze(0)
         windowedFeatures = self.__sampleSpectogramWindow(
             sample_spectogram.transpose(0, 1)
         )
-        return windowedFeatures
+        return self.__normalize_features(windowedFeatures)
 
     def __len__(self):
         return self.num_samples
