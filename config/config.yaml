@@ -13,7 +13,6 @@ requeue: False
 
 front_end: "VGG4L"
 window_size: 3.5
-normalization: "cmn"
 kernel_size: 1024
 embedding_size: 400
 heads_number: 32
