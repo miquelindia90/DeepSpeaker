@@ -1,8 +1,11 @@
 import numpy as np
+import random
 from random import randint
 import torch
 from torch.utils import data
 import torchaudio
+
+from augmentation import DataAugmentator
 
 
 def feature_extractor(audio_path):
@@ -37,6 +40,9 @@ class Dataset(data.Dataset):
             f_max=sampleRate // 2,
             normalized=True,
         )
+        self.data_augmentator = DataAugmentator(
+            parameters["augmentation_data_dir"], parameters["augmentation_labels_path"]
+        )
 
     def __sampleSpectogramWindow(self, features):
         file_size = features.size()[0]
@@ -52,6 +58,8 @@ class Dataset(data.Dataset):
 
     def __getFeatureVector(self, utteranceName):
         waveform, sample_rate = torchaudio.load(utteranceName + ".wav")
+        if random.uniform(0, 0.999) > 1 - self.parameters["augmentation_prob"]:
+            waveform = self.data_augmentator(waveform, sample_rate)
         sample_spectogram = self.spectogram_extractor(waveform).squeeze(0)
         windowedFeatures = self.__sampleSpectogramWindow(
             sample_spectogram.transpose(0, 1)
