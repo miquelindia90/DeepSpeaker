@@ -13,7 +13,7 @@ requeue: False
 
 augmentation_data_dir: "/scratch/speaker_databases/musan"
 augmentation_labels_path: "labels/musan.lst"
-augmentation_prob: 0.5
+augmentation_prob: 0.5 # Probability of applying augmentation to a sample. 0 means no augmentation.
 
 # Network Parameters
 
