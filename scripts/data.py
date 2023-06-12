@@ -17,13 +17,14 @@ def feature_extractor(audio_path):
             hop_length=int(sample_rate * 0.01),
             n_mels=80,
             f_max=sample_rate // 2,
-            normalized=True,
+            normalized=False,
         )(waveform)
         .squeeze(0)
         .transpose(0, 1)
     )
     mean = torch.mean(sample_spectogram, dim=0)
-    return sample_spectogram - mean
+    std = torch.std(sample_spectogram, dim=0)
+    return (sample_spectogram - mean) / std
 
 
 class Dataset(data.Dataset):
@@ -53,8 +54,9 @@ class Dataset(data.Dataset):
 
     def __normalize_features(self, features):
         mean = torch.mean(features, dim=0)
+        std = torch.std(features, dim=0)
         features -= mean
-        return features
+        return features / std
 
     def __getFeatureVector(self, utteranceName):
         waveform, sample_rate = torchaudio.load(utteranceName + ".wav")
