@@ -19,10 +19,12 @@ def feature_extractor(audio_path, preemphasis_coefficient=0.97):
             win_length=int(sample_rate * 0.025),
             hop_length=int(sample_rate * 0.01),
             n_mels=80,
+            mel_scale="slaney",
             window_fn=torch.hamming_window,
-            center=False,
             f_max=sample_rate // 2,
+            center=False,
             normalized=False,
+            norm="slaney",
         )(waveform)
         .squeeze(0)
         .transpose(0, 1)
@@ -34,18 +36,22 @@ def feature_extractor(audio_path, preemphasis_coefficient=0.97):
 
 
 class Dataset(data.Dataset):
-    def __init__(self, utterances, parameters, sampleRate=16000):
+    def __init__(self, utterances, parameters, sample_rate=16000):
         "Initialization"
         self.utterances = utterances
         self.parameters = parameters
         self.num_samples = len(utterances)
         self.spectogram_extractor = torchaudio.transforms.MelSpectrogram(
             n_fft=512,
-            win_length=int(sampleRate * 0.025),
-            hop_length=int(sampleRate * 0.01),
+            win_length=int(sample_rate * 0.025),
+            hop_length=int(sample_rate * 0.01),
             n_mels=80,
-            f_max=sampleRate // 2,
-            normalized=True,
+            mel_scale="slaney",
+            window_fn=torch.hamming_window,
+            f_max=sample_rate // 2,
+            center=False,
+            normalized=False,
+            norm="slaney",
         )
         self.data_augmentator = DataAugmentator(
             parameters["augmentation_data_dir"], parameters["augmentation_labels_path"]
