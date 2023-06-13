@@ -34,6 +34,14 @@ class DataAugmentator:
             dim=0,
         ).unsqueeze(0)
 
+    def __random_slice(self, audio, noise):
+        if audio.size()[1] > noise.size()[1]:
+            start = random.randint(0, audio.size()[1] - noise.size()[1])
+            return audio[:, start : start + noise.size()[1]], noise
+        else:
+            start = random.randint(0, noise.size()[1] - audio.size()[1])
+            return audio, noise[:, start : start + audio.size()[1]]
+
     def add_background_noise(self, audio, sample_rate):
         noise, noise_sample_rate = torchaudio.load(
             self.augmentation_directory
@@ -42,8 +50,7 @@ class DataAugmentator:
             + ".wav"
         )
         if noise.size()[1] / noise_sample_rate > 3.5:
-            noise = noise[:, : audio.size()[1]]
-            audio = audio[:, : noise.size()[1]]
+            audio, noise = self.__random_slice(audio, noise)
             audio_SNR = torch.tensor(random.choice(self.SNRS)).unsqueeze(0)
             noisy_audio = F.add_noise(audio, noise, audio_SNR)
             return noisy_audio
