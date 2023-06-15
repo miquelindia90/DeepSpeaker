@@ -1,8 +1,10 @@
-import pickle
+import sys
+import yaml
 import torch
 import argparse
+
 from model import *
-from featureExtractor import *
+from data import *
 from tqdm import tqdm
 
 
@@ -14,14 +16,14 @@ def prepareInput(features, device):
 
 
 def getAudioEmbedding(audioPath, net, device):
-    features = extractFeatures(audioPath)
+    features = feature_extractor(audioPath)
     with torch.no_grad():
         networkInputs = prepareInput(features, device)
         return net.getEmbedding(networkInputs)
 
 
-def processTrials(trials, data_directory, outputFile, net, device):
-    with open(outputFile, "w") as output:
+def processTrials(trials, data_directory, output_file, net, device):
+    with open(output_file, "w") as output:
         with open(trials, "r") as handle:
             lines = tqdm(handle.readlines())
             for idx, line in enumerate(lines):
@@ -39,39 +41,37 @@ def processTrials(trials, data_directory, outputFile, net, device):
                 lines.set_description(f"Processing...")
 
 
-def main(opt, params):
+def main(model_params, params):
     print("Loading Model")
     device = torch.device(params.device)
-    net_dict = torch.load(params.modelCheckpoint, map_location=device)
-    opt = net_dict["settings"]
+    net_dict = torch.load(params.model_path + "/model.chkpt", map_location=device)
 
     if torch.cuda.is_available():
         print(torch.cuda.get_device_name(0))
 
-    net = SpeakerClassifier(opt, device)
+    net = SpeakerClassifier(model_params, device)
     net.load_state_dict(net_dict["model"])
     net.to(device)
     net.eval()
 
-    processTrials(params.trials, params.dataDirectory, params.outputFile, net, device)
+    processTrials(params.trials, params.data_directory, params.output_file, net, device)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="score a trained model")
     parser.add_argument("--trials", type=str, default="./labels/Vox2023_trials.txt")
     parser.add_argument(
-        "--dataDirectory",
+        "--data_directory",
         type=str,
         default="/home/usuaris/scratch/speaker_databases/VoxSRC2023/test",
     )
-    parser.add_argument("--outputFile", type=str, default="scores.txt")
-    parser.add_argument("--modelConfig", type=str, required=True)
-    parser.add_argument("--modelCheckpoint", type=str, required=True)
+    parser.add_argument("--output_file", type=str, default="scores.txt")
+    parser.add_argument("--model_path", type=str, required=True)
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"])
 
     params = parser.parse_args()
 
-    with open(params.modelConfig, "rb") as handle:
-        opt = pickle.load(handle)
+    with open(params.model_path + "/config.yaml", "r") as handle:
+        model_params = yaml.load(handle, Loader=yaml.FullLoader)
 
-    main(opt, params)
+    main(model_params, params)
