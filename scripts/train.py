@@ -167,7 +167,9 @@ class Trainer:
 
             print(
                 "--Validation Epoch:{epoch: d}, EER:{eer: 3.3f}, elapse:{elapse: 3.3f} min".format(
-                    epoch=self.epoch, eer=EER, elapse=(time.time() - valid_time) / 60,
+                    epoch=self.epoch,
+                    eer=EER,
+                    elapse=(time.time() - valid_time) / 60,
                 )
             )
             # early stopping and save the best model
@@ -260,7 +262,6 @@ if __name__ == "__main__":
     params["num_spkrs"] = getNumberOfSpeakers(params["train_labels_path"])
     print("{} Speaker Labels".format(params["num_spkrs"]))
 
-    params["model_name"] = "model"
     if not os.path.exists(params["out_dir"]):
         os.makedirs(params["out_dir"])
 

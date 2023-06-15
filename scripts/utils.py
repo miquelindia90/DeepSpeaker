@@ -41,7 +41,7 @@ def chkptsave(parameters, model, optimizer, epoch, step):
 
     torch.save(
         checkpoint,
-        "{}/{}_{}.chkpt".format(parameters["out_dir"], parameters["model_name"], step),
+        "{}/model.chkpt".format(parameters["out_dir"]),
     )
 
 
