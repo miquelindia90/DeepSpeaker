@@ -62,26 +62,3 @@ def getNumberOfSpeakers(labelsFilePath):
         for line in labelsFile.readlines():
             speakersDict[line.split()[1]] = 0
     return len(speakersDict)
-
-
-def getModelName(params):
-    model_name = params["model_name"]
-
-    model_name = (
-        model_name
-        + "_{}".format(params["front_end"])
-        + "_{}".format(params["window_size"])
-        + "_{}batchSize".format(params["batch_size"] * params["gradientAccumulation"])
-        + "_{}lr".format(params["learning_rate"])
-        + "_{}weightDecay".format(params["weight_decay"])
-        + "_{}kernel".format(params["kernel_size"])
-        + "_{}embSize".format(params["embedding_size"])
-        + "_{}s".format(params["scalingFactor"])
-        + "_{}m".format(params["marginFactor"])
-    )
-
-    model_name += "_{}".format(params["pooling_method"]) + "_{}".format(
-        params["heads_number"]
-    )
-
-    return model_name
