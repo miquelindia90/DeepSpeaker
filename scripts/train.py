@@ -120,12 +120,14 @@ class Trainer:
             input1, input2 = self.__extractInputFromFeature(sline)
 
             if torch.cuda.device_count() > 1:
-                emb1, emb2 = self.net.module.getEmbedding(
-                    input1
-                ), self.net.module.getEmbedding(input2)
+                emb1, emb2 = (
+                    self.net.module.getEmbedding(input1),
+                    self.net.module.getEmbedding(input2),
+                )
             else:
-                emb1, emb2 = self.net.getEmbedding(input1), self.net.getEmbedding(
-                    input2
+                emb1, emb2 = (
+                    self.net.getEmbedding(input1),
+                    self.net.getEmbedding(input2),
                 )
 
             dist = scoreCosineDistance(emb1, emb2)
@@ -165,9 +167,7 @@ class Trainer:
 
             print(
                 "--Validation Epoch:{epoch: d}, EER:{eer: 3.3f}, elapse:{elapse: 3.3f} min".format(
-                    epoch=self.epoch,
-                    eer=EER,
-                    elapse=(time.time() - valid_time) / 60,
+                    epoch=self.epoch, eer=EER, elapse=(time.time() - valid_time) / 60,
                 )
             )
             # early stopping and save the best model
@@ -219,8 +219,9 @@ class Trainer:
             self.__initialize_batch_variables()
             batch_looper = tqdm(self.training_generator)
             for input, label in batch_looper:
-                input, label = input.float().to(self.device), label.long().to(
-                    self.device
+                input, label = (
+                    input.float().to(self.device),
+                    label.long().to(self.device),
                 )
                 prediction, AMPrediction = self.net(input, label=label)
                 loss = self.criterion(AMPrediction, label)
