@@ -167,7 +167,9 @@ class Trainer:
 
             print(
                 "--Validation Epoch:{epoch: d}, EER:{eer: 3.3f}, elapse:{elapse: 3.3f} min".format(
-                    epoch=self.epoch, eer=EER, elapse=(time.time() - valid_time) / 60,
+                    epoch=self.epoch,
+                    eer=EER,
+                    elapse=(time.time() - valid_time) / 60,
                 )
             )
             # early stopping and save the best model
@@ -257,17 +259,13 @@ if __name__ == "__main__":
 
     with open(config_path, "rb") as handle:
         params = yaml.load(handle, Loader=yaml.FullLoader)
-
-    params["model_name"] = getModelName(params)
     params["num_spkrs"] = getNumberOfSpeakers(params["train_labels_path"])
     print("{} Speaker Labels".format(params["num_spkrs"]))
 
     if not os.path.exists(params["out_dir"]):
         os.makedirs(params["out_dir"])
 
-    with open(
-        params["out_dir"] + "/" + params["model_name"] + "_config.yaml", "w"
-    ) as handle:
+    with open(params["out_dir"] + "/config.yaml", "w") as handle:
         yaml.dump(params, stream=handle, default_flow_style=False, sort_keys=False)
 
     main(params)
