@@ -29,6 +29,12 @@ class SpeakerClassifier(nn.Module):
             )
             self.front_end = VGG4L(parameters["kernel_size"])
 
+        elif parameters["front_end"] == "ResNet34":
+            self.vector_size = getVGG4LOutputDimension(
+                parameters["feature_size"], outputChannel=parameters["kernel_size"]
+            )
+            self.front_end = Resnet34(parameters["kernel_size"])
+
     def __initPoolingLayers(self, parameters):
         self.pooling_method = parameters["pooling_method"]
 
