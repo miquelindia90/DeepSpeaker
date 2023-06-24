@@ -92,7 +92,7 @@ class ResnetBlock(torch.nn.Module):
         self.bn1 = torch.nn.BatchNorm2d(kernel_size)
         self.conv2 = torch.nn.Conv2d(kernel_size, kernel_size, 3, stride=1, padding=1)
         self.bn2 = torch.nn.BatchNorm2d(kernel_size)
-        self.gelu = torch.nn.GeLU(inplace=True)
+        self.gelu = torch.nn.GELU()
         if kernel_size_input == kernel_size:
             self.residual_condition = True
 
