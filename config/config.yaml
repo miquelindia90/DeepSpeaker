@@ -5,7 +5,7 @@ valid_data_dir: "/scratch/speaker_databases/VoxSRC2023/dev"
 train_labels_path: "labels/sc_labels.ndx"
 valid_clients: "labels/2023_val_clients.ndx"
 valid_impostors: "labels/2023_val_impostors.ndx"
-out_dir: "./models/model1"
+out_dir: "./models/resnet34_first_try"
 model_name: "CNN"
 requeue: False
 
@@ -13,11 +13,11 @@ requeue: False
 
 augmentation_data_dir: "/scratch/speaker_databases/musan"
 augmentation_labels_path: "labels/musan.lst"
-augmentation_prob: 0.5 # Probability of applying augmentation to a sample. 0 means no augmentation.
+augmentation_prob: 0.75 # Probability of applying augmentation to a sample. 0 means no augmentation.
 
 # Network Parameters
 
-front_end: "VGG4L"
+front_end: "ResNet34"
 window_size: 3.5
 kernel_size: 1024
 embedding_size: 400
