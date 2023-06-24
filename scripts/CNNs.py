@@ -95,6 +95,8 @@ class ResnetBlock(torch.nn.Module):
         self.gelu = torch.nn.GELU()
         if kernel_size_input == kernel_size:
             self.residual_condition = True
+        else:
+            self.residual_condition = False
 
     def forward(self, x):
         out = self.conv1(x)
