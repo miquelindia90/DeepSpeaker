@@ -2,6 +2,7 @@ import torch
 from torch.nn import functional as F
 import numpy as np
 
+
 def Score(SC, th, rate):
     score_count = 0.0
     for sc in SC:
@@ -44,6 +45,7 @@ def chkptsave(parameters, model, optimizer, epoch, step):
         "{}/model.chkpt".format(parameters["out_dir"]),
     )
 
+
 def calculate_EER(clients_scores, impostors_scores):
     thresholds = np.arange(-1, 1, 0.01)
     FRR, FAR = np.zeros(len(thresholds)), np.zeros(len(thresholds))
@@ -59,6 +61,7 @@ def calculate_EER(clients_scores, impostors_scores):
     else:
         EER = 50.00
     return EER
+
 
 def Accuracy(pred, labels):
     acc = 0.0

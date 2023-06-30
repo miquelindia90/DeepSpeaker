@@ -19,7 +19,7 @@ def prepareInput(features, device):
 
 
 def get_audio_embedding(audioPath, net, device):
-    features = feature_extractor(audioPath + '.wav')
+    features = feature_extractor(audioPath + ".wav")
     with torch.no_grad():
         networkInputs = prepareInput(features, device)
         return net.getEmbedding(networkInputs), features.size(0)
@@ -40,39 +40,59 @@ def extract_scores(trials, data_directory, output_file, net, device):
                 score = (
                     torch.nn.functional.cosine_similarity(embedding1, embedding2) + 1
                 ) / 2
-                output.write(sline[0] + " " + sline[1] + " " + str(embedding1_size) + " " + sline[2]  + " " + str(embedding2_size)  + " " + str(score.item()) + "\n")
+                output.write(
+                    sline[0]
+                    + " "
+                    + sline[1]
+                    + " "
+                    + str(embedding1_size)
+                    + " "
+                    + sline[2]
+                    + " "
+                    + str(embedding2_size)
+                    + " "
+                    + str(score.item())
+                    + "\n"
+                )
                 lines.set_description(f"Processing...")
+
 
 def prepare_scores_dictionary(output_file):
     trials = dict()
-    with open(output_file, 'r') as handle:
+    with open(output_file, "r") as handle:
         lines = handle.readlines()
         for idx, line in enumerate(lines):
             sline = line.strip().split()
-            trials[str(idx)] = {'ground_truth': sline[0], 'size_emb1': sline[2], 'size_emb2': sline[4], 'score': sline[5]}
+            trials[str(idx)] = {
+                "ground_truth": sline[0],
+                "size_emb1": sline[2],
+                "size_emb2": sline[4],
+                "score": sline[5],
+            }
     return trials
 
+
 def evaluate_scores(trials, model_path):
-    
     client_scores = []
     impostor_scores = []
     for trial in trials:
-        if trials[trial]['ground_truth'] == '1':
-            client_scores.append(float(trials[trial]['score']))
+        if trials[trial]["ground_truth"] == "1":
+            client_scores.append(float(trials[trial]["score"]))
         else:
-            impostor_scores.append(float(trials[trial]['score']))
+            impostor_scores.append(float(trials[trial]["score"]))
 
     eer = calculate_EER(client_scores, impostor_scores)
-    plt.hist(np.array(client_scores), bins=100, label='clients')
-    plt.hist(np.array(impostor_scores), bins=100, label='impostors')
+    plt.hist(np.array(client_scores), bins=100, label="clients")
+    plt.hist(np.array(impostor_scores), bins=100, label="impostors")
     plt.legend()
     plt.title("All Scores: EER: " + str(eer))
     plt.savefig(model_path + "/validation_scores.png")
 
+
 def analyze_scores(output_file, model_path):
-    
     trials = prepare_scores_dictionary(output_file)
     evaluate_scores(trials, model_path)
+
 
 def main(model_params, params):
     print("Loading Model")
@@ -88,8 +108,11 @@ def main(model_params, params):
     net.eval()
 
     if not params.skip_extraction:
-        extract_scores(params.trials, params.data_directory, params.output_file, net, device)
+        extract_scores(
+            params.trials, params.data_directory, params.output_file, net, device
+        )
     analyze_scores(params.output_file, params.model_path)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="score a trained model")
