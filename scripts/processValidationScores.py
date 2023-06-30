@@ -15,23 +15,23 @@ def prepareInput(features, device):
     return inputs
 
 
-def getAudioEmbedding(audioPath, net, device):
+def get_audio_embedding(audioPath, net, device):
     features = feature_extractor(audioPath)
     with torch.no_grad():
         networkInputs = prepareInput(features, device)
         return net.getEmbedding(networkInputs)
 
 
-def processTrials(trials, data_directory, output_file, net, device):
+def extract_scores(trials, data_directory, output_file, net, device):
     with open(output_file, "w") as output:
         with open(trials, "r") as handle:
             lines = tqdm(handle.readlines())
             for idx, line in enumerate(lines):
                 sline = line.strip().split()
-                embedding1 = getAudioEmbedding(
+                embedding1 = get_audio_embedding(
                     data_directory + "/" + sline[0], net, device
                 )
-                embedding2 = getAudioEmbedding(
+                embedding2 = get_audio_embedding(
                     data_directory + "/" + sline[1], net, device
                 )
                 score = (
@@ -54,20 +54,21 @@ def main(model_params, params):
     net.to(device)
     net.eval()
 
-    processTrials(params.trials, params.data_directory, params.output_file, net, device)
+    extract_scores(params.trials, params.data_directory, params.output_file, net, device)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="score a trained model")
-    parser.add_argument("--trials", type=str, default="./labels/Vox2023_trials.txt")
+    parser.add_argument("--trials", type=str, default="./labels/VoxSRC2023_val.txt")
     parser.add_argument(
         "--data_directory",
         type=str,
-        default="/home/usuaris/scratch/speaker_databases/VoxSRC2023/test",
+        default="/home/usuaris/scratch/speaker_databases/VoxSRC2023/dev",
     )
-    parser.add_argument("--output_file", type=str, default="scores.txt")
+    parser.add_argument("--output_file", type=str, default="val_scores.txt")
     parser.add_argument("--model_path", type=str, required=True)
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"])
+    parser.add_argument("--skip_extraction", action="store_true")
 
     params = parser.parse_args()
 
