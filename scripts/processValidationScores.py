@@ -41,18 +41,14 @@ def extract_scores(trials, data_directory, output_file, net, device):
                     torch.nn.functional.cosine_similarity(embedding1, embedding2) + 1
                 ) / 2
                 output.write(
-                    sline[0]
-                    + " "
-                    + sline[1]
-                    + " "
-                    + str(embedding1_size)
-                    + " "
-                    + sline[2]
-                    + " "
-                    + str(embedding2_size)
-                    + " "
-                    + str(score.item())
-                    + "\n"
+                    "{} {} {} {} {} {}\n".format(
+                        sline[0],
+                        sline[1],
+                        str(embedding1_size),
+                        sline[2],
+                        str(embedding2_size),
+                        str(score.item()),
+                    )
                 )
                 lines.set_description(f"Processing...")
 
@@ -82,10 +78,10 @@ def evaluate_scores(trials, model_path):
             impostor_scores.append(float(trials[trial]["score"]))
 
     eer = calculate_EER(client_scores, impostor_scores)
-    plt.hist(np.array(client_scores), bins=100, label="clients")
-    plt.hist(np.array(impostor_scores), bins=100, label="impostors")
+    plt.hist(np.array(client_scores), bins=100, label="clients", alpha=0.7)
+    plt.hist(np.array(impostor_scores), bins=100, label="impostors", alpha=0.7)
     plt.legend()
-    plt.title("All Scores: EER: " + str(eer))
+    plt.title("All Scores: EER: " + str(round(eer, 2)))
     plt.savefig(model_path + "/validation_scores.png")
 
 
@@ -122,7 +118,7 @@ if __name__ == "__main__":
         type=str,
         default="/home/usuaris/scratch/speaker_databases/VoxSRC2023/dev",
     )
-    parser.add_argument("--output_file", type=str, default="val_scores.txt")
+    parser.add_argument("--output_file", type=str, default="val_scores_2022.txt")
     parser.add_argument("--model_path", type=str, required=True)
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"])
     parser.add_argument("--skip_extraction", action="store_true")
