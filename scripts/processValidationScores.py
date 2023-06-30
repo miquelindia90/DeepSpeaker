@@ -103,11 +103,12 @@ def main(model_params, params):
     net.to(device)
     net.eval()
 
+    output_file_path = params.model_path + "/" + params.output_file
     if not params.skip_extraction:
         extract_scores(
-            params.trials, params.data_directory, params.output_file, net, device
+            params.trials, params.data_directory, output_file_path, net, device
         )
-    analyze_scores(params.output_file, params.model_path)
+    analyze_scores(output_file_path, params.model_path)
 
 
 if __name__ == "__main__":
