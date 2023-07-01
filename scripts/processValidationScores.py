@@ -2,13 +2,12 @@ import argparse
 
 import yaml
 import torch
-import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 from model import *
 from data import *
-from tqdm import tqdm
-from utils import calculate_EER
+from postProcessing import *
 
 
 def prepareInput(features, device):
@@ -53,43 +52,6 @@ def extract_scores(trials, data_directory, output_file, net, device):
                 lines.set_description(f"Processing...")
 
 
-def prepare_scores_dictionary(output_file):
-    trials = dict()
-    with open(output_file, "r") as handle:
-        lines = handle.readlines()
-        for idx, line in enumerate(lines):
-            sline = line.strip().split()
-            trials[str(idx)] = {
-                "ground_truth": sline[0],
-                "size_emb1": sline[2],
-                "size_emb2": sline[4],
-                "score": sline[5],
-            }
-    return trials
-
-
-def evaluate_scores(trials, model_path):
-    client_scores = []
-    impostor_scores = []
-    for trial in trials:
-        if trials[trial]["ground_truth"] == "1":
-            client_scores.append(float(trials[trial]["score"]))
-        else:
-            impostor_scores.append(float(trials[trial]["score"]))
-
-    eer = calculate_EER(client_scores, impostor_scores)
-    plt.hist(np.array(client_scores), bins=100, label="clients", alpha=0.7)
-    plt.hist(np.array(impostor_scores), bins=100, label="impostors", alpha=0.7)
-    plt.legend()
-    plt.title("All Scores: EER: " + str(round(eer, 2)))
-    plt.savefig(model_path + "/validation_scores.png")
-
-
-def analyze_scores(output_file, model_path):
-    trials = prepare_scores_dictionary(output_file)
-    evaluate_scores(trials, model_path)
-
-
 def main(model_params, params):
     print("Loading Model")
     device = torch.device(params.device)
@@ -113,13 +75,13 @@ def main(model_params, params):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="score a trained model")
-    parser.add_argument("--trials", type=str, default="./labels/VoxSRC2023_val.txt")
+    parser.add_argument("--trials", type=str, default="./labels/VoxSRCOrigin_val.txt")
     parser.add_argument(
         "--data_directory",
         type=str,
-        default="/home/usuaris/scratch/speaker_databases/VoxSRC2023/dev",
+        default="/home/usuaris/scratch/speaker_databases/VoxCeleb-2/dev",
     )
-    parser.add_argument("--output_file", type=str, default="val_scores_2022.txt")
+    parser.add_argument("--output_file", type=str, default="val_scores_origin.txt")
     parser.add_argument("--model_path", type=str, required=True)
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"])
     parser.add_argument("--skip_extraction", action="store_true")
