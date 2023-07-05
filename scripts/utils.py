@@ -1,5 +1,6 @@
 import torch
 from torch.nn import functional as F
+import numpy as np
 
 
 def Score(SC, th, rate):
@@ -43,6 +44,23 @@ def chkptsave(parameters, model, optimizer, epoch, step):
         checkpoint,
         "{}/model.chkpt".format(parameters["out_dir"]),
     )
+
+
+def calculate_EER(clients_scores, impostors_scores):
+    thresholds = np.arange(-1, 1, 0.01)
+    FRR, FAR = np.zeros(len(thresholds)), np.zeros(len(thresholds))
+    for idx, th in enumerate(thresholds):
+        FRR[idx] = Score(clients_scores, th, "FRR")
+        FAR[idx] = Score(impostors_scores, th, "FAR")
+
+    EER_Idx = np.argwhere(np.diff(np.sign(FAR - FRR)) != 0).reshape(-1)
+    if len(EER_Idx) > 0:
+        if len(EER_Idx) > 1:
+            EER_Idx = EER_Idx[0]
+        EER = round((FAR[int(EER_Idx)] + FRR[int(EER_Idx)]) / 2, 4)
+    else:
+        EER = 50.00
+    return EER
 
 
 def Accuracy(pred, labels):

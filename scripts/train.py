@@ -135,22 +135,6 @@ class Trainer:
 
         return scores
 
-    def __calculate_EER(self, CL, IM):
-        thresholds = np.arange(-1, 1, 0.01)
-        FRR, FAR = np.zeros(len(thresholds)), np.zeros(len(thresholds))
-        for idx, th in enumerate(thresholds):
-            FRR[idx] = Score(CL, th, "FRR")
-            FAR[idx] = Score(IM, th, "FAR")
-
-        EER_Idx = np.argwhere(np.diff(np.sign(FAR - FRR)) != 0).reshape(-1)
-        if len(EER_Idx) > 0:
-            if len(EER_Idx) > 1:
-                EER_Idx = EER_Idx[0]
-            EER = round((FAR[int(EER_Idx)] + FRR[int(EER_Idx)]) / 2, 4)
-        else:
-            EER = 50.00
-        return EER
-
     def __validate(self):
         with torch.no_grad():
             valid_time = time.time()
@@ -160,10 +144,10 @@ class Trainer:
                 params["valid_impostors"], "r"
             ) as impostors_in:
                 # score clients
-                CL = self.__extract_scores(clients_in)
-                IM = self.__extract_scores(impostors_in)
+                clients_scores = self.__extract_scores(clients_in)
+                impostors_scores = self.__extract_scores(impostors_in)
             # Compute EER
-            EER = self.__calculate_EER(CL, IM)
+            EER = calculate_EER(clients_scores, impostors_scores)
 
             print(
                 "--Validation Epoch:{epoch: d}, EER:{eer: 3.3f}, elapse:{elapse: 3.3f} min".format(
