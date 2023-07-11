@@ -10,7 +10,6 @@ from augmentation import DataAugmentator
 
 def feature_extractor(audio_path, preemphasis_coefficient=0.97):
     waveform, sample_rate = torchaudio.load(audio_path)
-    waveform *= 32768
     waveform[:, 1:] -= preemphasis_coefficient * waveform[:, :-1]
     waveform[0] *= 1 - preemphasis_coefficient
     sample_spectogram = (
