@@ -10,7 +10,7 @@ class DataAugmentator:
     SPEEDS = ["0.9", "1.1"]
     SNR_NOISE_RANGE = [0, 15]
     SNR_SPEECH_RANGE = [10, 30]
-    SNR_MUSIC_RANGE = [10, 30]
+    SNR_MUSIC_RANGE = [5, 15]
 
     def __init__(self, augmentation_directory, augmentation_labels_path):
         self.augmentation_directory = augmentation_directory
