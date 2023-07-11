@@ -38,7 +38,7 @@ class DataAugmentator:
 
     def apply_reverb(self, audio, sample_rate):
         rir_wav, rir_sample_rate = torchaudio.load(
-            self.rirs_directory + "/" + random.choice(self.rirs_list) + ".wav"
+            self.rirs_directory + "/" + random.choice(self.rirs_list).strip() + ".wav"
         )
         rir = rir_wav[:, int(rir_sample_rate * 0.01) : int(rir_sample_rate * 1.3)]
         rir = rir / torch.norm(rir, p=2)
