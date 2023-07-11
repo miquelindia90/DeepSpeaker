@@ -12,9 +12,17 @@ class DataAugmentator:
     SNR_SPEECH_RANGE = [10, 30]
     SNR_MUSIC_RANGE = [5, 15]
 
-    def __init__(self, augmentation_directory, augmentation_labels_path):
+    def __init__(
+        self,
+        augmentation_directory,
+        augmentation_labels_path,
+        rirs_directory,
+        rirs_labels_path,
+    ):
         self.augmentation_directory = augmentation_directory
+        self.rirs_directory = rirs_directory
         self.__create_augmentation_list(augmentation_labels_path)
+        self.__create_rir_list(rirs_labels_path)
 
     def __len__(self):
         return len(self.augmentation_list)
@@ -29,12 +37,12 @@ class DataAugmentator:
         )[0]
 
     def apply_reverb(self, audio, sample_rate):
-        return torch.mean(
-            torchaudio.sox_effects.apply_effects_tensor(
-                audio, sample_rate, [["reverb", "-w"]]
-            )[0],
-            dim=0,
-        ).unsqueeze(0)
+        rir_wav, rir_sample_rate = torchaudio.load(
+            self.rirs_directory + "/" + random.choice(self.rirs_list).strip() + ".wav"
+        )
+        rir = rir_wav[:, int(rir_sample_rate * 0.01) : int(rir_sample_rate * 1.3)]
+        rir = rir / torch.norm(rir, p=2)
+        return torch.mean(functional.fftconvolve(audio, rir), dim=0).unsqueeze(0)
 
     def __random_slice(self, audio, noise):
         if audio.size()[1] > noise.size()[1]:
@@ -78,6 +86,10 @@ class DataAugmentator:
     def __create_augmentation_list(self, augmentation_labels_path):
         with open(augmentation_labels_path) as handle:
             self.augmentation_list = handle.readlines()
+
+    def __create_rir_list(self, rirs_labels_path):
+        with open(rirs_labels_path) as handle:
+            self.rirs_list = handle.readlines()
 
     def augment(self, audio, sample_rate):
         effect = random.choice(self.EFFECTS)

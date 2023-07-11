@@ -53,7 +53,10 @@ class Dataset(data.Dataset):
             norm="slaney",
         )
         self.data_augmentator = DataAugmentator(
-            parameters["augmentation_data_dir"], parameters["augmentation_labels_path"]
+            parameters["augmentation_data_dir"],
+            parameters["augmentation_labels_path"],
+            parameters["rirs_data_dir"],
+            parameters["rirs_labels_path"],
         )
 
     def __sampleSpectogramWindow(self, features):
