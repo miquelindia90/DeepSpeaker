@@ -2,13 +2,15 @@ import random
 
 import torch
 import torchaudio
-import torchaudio.functional as F
+import torchaudio.functional as functional
 
 
 class DataAugmentator:
     EFFECTS = ["apply_speed_perturbation", "apply_reverb", "add_background_noise"]
     SPEEDS = ["0.9", "1.1"]
-    SNRS = [3, 5, 10, 15, 20]
+    SNR_NOISE_RANGE = [0, 15]
+    SNR_SPEECH_RANGE = [10, 30]
+    SNR_MUSIC_RANGE = [5, 15]
 
     def __init__(self, augmentation_directory, augmentation_labels_path):
         self.augmentation_directory = augmentation_directory
@@ -42,17 +44,33 @@ class DataAugmentator:
             start = random.randint(0, noise.size()[1] - audio.size()[1])
             return audio, noise[:, start : start + audio.size()[1]]
 
+    def __get_SNR_bounds(self, background_audio_type):
+        if background_audio_type == "noise":
+            return self.SNR_NOISE_RANGE
+        elif background_audio_type == "speech":
+            return self.SNR_SPEECH_RANGE
+        elif background_audio_type == "music":
+            return self.SNR_MUSIC_RANGE
+        else:
+            return self.SNR_NOISE_RANGE
+
+    def __sample_random_SNR(self, background_audio_type):
+        snr_bounds = self.__get_SNR_bounds(background_audio_type)
+        return random.uniform(snr_bounds[0], snr_bounds[1])
+
     def add_background_noise(self, audio, sample_rate):
+        background_audio_line = random.choice(self.augmentation_list).strip()
+        background_audio_name = background_audio_line.split(" ")[0]
+        background_audio_type = background_audio_line.split(" ")[1]
         noise, noise_sample_rate = torchaudio.load(
-            self.augmentation_directory
-            + "/"
-            + random.choice(self.augmentation_list)[:-1]
-            + ".wav"
+            self.augmentation_directory + "/" + background_audio_name + ".wav"
         )
         if noise.size()[1] / noise_sample_rate > 3.5:
             audio, noise = self.__random_slice(audio, noise)
-            audio_SNR = torch.tensor(random.choice(self.SNRS)).unsqueeze(0)
-            noisy_audio = F.add_noise(audio, noise, audio_SNR)
+            audio_SNR = torch.tensor(
+                self.__sample_random_SNR(background_audio_type)
+            ).unsqueeze(0)
+            noisy_audio = functional.add_noise(audio, noise, audio_SNR)
             return noisy_audio
         else:
             return audio
