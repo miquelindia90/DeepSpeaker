@@ -75,7 +75,6 @@ class Dataset(data.Dataset):
         waveform, sample_rate = torchaudio.load(utteranceName + ".wav")
         if random.uniform(0, 0.999) > 1 - self.parameters["augmentation_prob"]:
             waveform = self.data_augmentator(waveform, sample_rate)
-        waveform *= 32768
         waveform[:, 1:] -= preemphasis_coefficient * waveform[:, :-1]
         waveform[0] *= 1 - preemphasis_coefficient
         sample_spectogram = self.spectogram_extractor(waveform).squeeze(0)
