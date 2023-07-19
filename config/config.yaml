@@ -44,3 +44,6 @@ early_stopping: 25
 num_workers: 4
 scheduler_lr_epochs: 5
 scheduler_lr_gamma: 0.5
+
+# Logging
+print_metric_window: 1000
