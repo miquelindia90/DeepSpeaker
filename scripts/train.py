@@ -88,7 +88,7 @@ class Trainer:
 
     def __update_optimizer(self):
         for paramGroup in self.optimizer.param_groups:
-            paramGroup["lr"] *= 0.5
+            paramGroup["lr"] *= self.params["scheduler_lr_gamma"]
         print("New Learning Rate: {}".format(paramGroup["lr"]))
 
     def __load_criterion(self):
@@ -172,7 +172,7 @@ class Trainer:
         self.optimizer.zero_grad()
 
     def __updateTrainningVariables(self):
-        if (self.stopping + 1) % 15 == 0:
+        if (self.stopping + 1) % self.params["scheduler_lr_epochs"] == 0:
             self.__update_optimizer()
 
     def __update_metrics(self, accuracy, loss, batch_looper):
