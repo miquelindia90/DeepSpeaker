@@ -5,12 +5,14 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+
 def getResnetOutputDimension(inputDimension, outputChannel=128):
     outputDimension = np.ceil(np.array(inputDimension, dtype=np.float32) / 2)
     outputDimension = np.ceil(np.array(outputDimension, dtype=np.float32) / 2)
     outputDimension = np.ceil(np.array(outputDimension, dtype=np.float32) / 2)
     outputDimension = np.ceil(np.array(outputDimension, dtype=np.float32) / 2)
     return int(outputDimension) * outputChannel
+
 
 class ResnetBlock(torch.nn.Module):
     def __init__(self, kernel_size_input, kernel_size):
@@ -35,13 +37,16 @@ class ResnetBlock(torch.nn.Module):
         out = self.gelu(out)
         return out
 
+
 class Resnet34(Resnet):
     def __init__(self, kernel_size):
         super(Resnet34, self).__init__(kernel_size, [3, 4, 6, 3])
 
+
 class Resnet101(Resnet):
     def __init__(self, kernel_size):
         super(Resnet101, self).__init__(kernel_size, [3, 4, 23, 3])
+
 
 class Resnet(torch.nn.Module):
     def __init__(self, kernel_size, group_blocks):

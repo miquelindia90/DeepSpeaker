@@ -76,7 +76,7 @@ class SpeakerClassifier(nn.Module):
         embedding3 = self.preLayer(embedding2)
 
         return embedding3
-    
+
     def getEmbeddings(self, x):
         encoder_output = self.front_end(x)
         embedding0, alignment = self.poolingLayer(encoder_output)
