@@ -1,14 +1,24 @@
-# DeepSpeakerVGG
+# DeepSpeaker
 
-Pytorch implemenation of the model proposed in the paper:
-
-(WIP)
+Pytorch implemenation of SOTA Speaker Verification systems. 
 
 ## Installation
 
 This repository has been created using python3.10. You can find the python3
 dependencies on requirements.txt. Hence you can install it by:
 
+* Clone the repo first as:
+```bash
+git clone https://github.com/miquelindia90/DeepSpeaker.git
+```
+
+* Create a virtual environment. We are using conda here but it could be done with others like virtualenv:
+```bash
+conda create -n deepspeaker python=3.10
+conda activate deepspeaker
+```
+
+* Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
@@ -58,3 +68,46 @@ python scripts/train.py config/config.yaml
 ```
 
 With this script you will launch the model training with the default setup defined in `config/config.yaml`. The model will be trained following the methods and procedures described in the paper. The best models found will be saved in the `--out_dir` directory. You will find there a `.yaml` file with the training/model configuration and several checkpoint `.pt` files which store model weghts, optimizer state values, etc. The best saved models correspond to the last saved checkpoints.
+
+
+### Network Embedding Extraction
+
+(In construction)
+
+## Support List:
+
+* Topologies (SOTA Models)
+    - [x] [VGG](https://arxiv.org/pdf/1906.09890.pdf)
+    - [x] [ResNet34](https://arxiv.org/pdf/1512.03385.pdf)
+    - [x] [ResNet101](https://arxiv.org/pdf/1512.03385.pdf) (Construction)
+    - [x] [RepVGG](https://arxiv.org/pdf/2101.03697.pdf) (Construction)
+    - [x] [CAM++](https://arxiv.org/pdf/2303.00332.pdf) (Construction)
+* Pooling Functions
+    - [x] Temporal Average Pooling (TAP)
+    - [x] Self Attentive Pooling (SAP)      
+    - [x] Attentive Statistics Pooling (ASTP)
+    - [x] [Self Multi-Attention Pooling (SMHA)](https://arxiv.org/pdf/1906.09890.pdf)
+    - [x] [Double Multi-Attention Pooling (DMHA)](https://arxiv.org/pdf/1906.09890.pdf)
+    - [x] [Multi-Query and Multi-Head Attentive Statistics Pooling (MQMHASTP)](https://arxiv.org/pdf/2110.05042.pdf) (Construction)
+* Criteria
+    - [x] Softmax
+    - [x] [Add_Margin (AM-Softmax)](https://arxiv.org/pdf/1801.05599.pdf) (Construction)
+    - [x] [Arc_Margin (AAM-Softmax)](https://arxiv.org/pdf/1801.07698v1.pdf)
+    - [x] [Arc_Margin+Inter-topk+Sub-center](https://arxiv.org/pdf/2110.05042.pdf) (Construction)
+* Scoring
+    - [x] Cosine
+    - [x] PLDA (Construction)
+    - [x] Score Normalization (AS-Norm) (Construction)
+* Metric
+    - [x] EER
+    - [x] minDCF (Construction)
+* Online Augmentation
+    - [x] Noise && RIR
+    - [x] Speed Perturb
+    - [x] SpecAug (Construction)
+* Training Strategy
+    - [x] Well-designed Learning Rate and Margin Schedulers
+    - [x] Large Margin Fine-tuning
+    - [x] Automatic Mixed Precision (AMP) Training
+* Runtime 
+    - [x] Python Binding (Construction)
