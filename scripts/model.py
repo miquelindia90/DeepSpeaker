@@ -2,7 +2,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from poolings import *
-from CNNs import *
+from topologies.VGG import *
+from topologies.ResNet import *
 from loss import *
 
 
@@ -24,16 +25,21 @@ class SpeakerClassifier(nn.Module):
 
     def __initFrontEnd(self, parameters):
         if parameters["front_end"] == "VGG4L":
-            self.vector_size = getVGG4LOutputDimension(
+            self.vector_size = getVGGOutputDimension(
                 parameters["feature_size"], outputChannel=parameters["kernel_size"]
             )
             self.front_end = VGG4L(parameters["kernel_size"])
 
         elif parameters["front_end"] == "ResNet34":
-            self.vector_size = getVGG4LOutputDimension(
+            self.vector_size = getResnetOutputDimension(
                 parameters["feature_size"], outputChannel=parameters["kernel_size"]
             )
             self.front_end = Resnet34(parameters["kernel_size"])
+        elif parameters["front_end"] == "ResNet101":
+            self.vector_size = getResnetOutputDimension(
+                parameters["feature_size"], outputChannel=parameters["kernel_size"]
+            )
+            self.front_end = Resnet101(parameters["kernel_size"])
 
     def __initPoolingLayers(self, parameters):
         self.pooling_method = parameters["pooling_method"]
@@ -70,7 +76,7 @@ class SpeakerClassifier(nn.Module):
         embedding3 = self.preLayer(embedding2)
 
         return embedding3
-    
+
     def getEmbeddings(self, x):
         encoder_output = self.front_end(x)
         embedding0, alignment = self.poolingLayer(encoder_output)

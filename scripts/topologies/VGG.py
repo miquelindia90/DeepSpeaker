@@ -6,7 +6,7 @@ from torch import nn
 from torch.nn import functional as F
 
 
-def getVGG4LOutputDimension(inputDimension, outputChannel=128):
+def getVGGOutputDimension(inputDimension, outputChannel=128):
     outputDimension = np.ceil(np.array(inputDimension, dtype=np.float32) / 2)
     outputDimension = np.ceil(np.array(outputDimension, dtype=np.float32) / 2)
     outputDimension = np.ceil(np.array(outputDimension, dtype=np.float32) / 2)
