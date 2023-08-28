@@ -7,6 +7,18 @@ Pytorch implemenation of SOTA Speaker Verification systems.
 This repository has been created using python3.10. You can find the python3
 dependencies on requirements.txt. Hence you can install it by:
 
+* Clone the repo first as:
+```bash
+git clone https://github.com/miquelindia90/DeepSpeaker.git
+```
+
+* Create a virtual environment. We are using conda here but it could be done with others like virtualenv:
+```bash
+conda create -n deepspeaker python=3.10
+conda activate deepspeaker
+```
+
+* Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
