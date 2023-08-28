@@ -56,6 +56,7 @@ class Dataset(data.Dataset):
         self.data_augmentator = DataAugmentator(
             parameters["augmentation_data_dir"],
             parameters["augmentation_labels_path"],
+            parameters["window_size"],
             parameters["rirs_data_dir"],
             parameters["rirs_labels_path"],
         )

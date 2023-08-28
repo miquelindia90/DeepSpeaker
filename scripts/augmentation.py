@@ -16,11 +16,13 @@ class DataAugmentator:
         self,
         augmentation_directory,
         augmentation_labels_path,
+        window_size,
         rirs_directory,
         rirs_labels_path,
     ):
         self.augmentation_directory = augmentation_directory
         self.rirs_directory = rirs_directory
+        self.window_size = window_size
         self.__create_augmentation_list(augmentation_labels_path)
         self.__create_rir_list(rirs_labels_path)
 
@@ -73,7 +75,7 @@ class DataAugmentator:
         noise, noise_sample_rate = torchaudio.load(
             self.augmentation_directory + "/" + background_audio_name + ".wav"
         )
-        if noise.size()[1] / noise_sample_rate > 3.5:
+        if noise.size()[1] / noise_sample_rate > self.window_size:
             audio, noise = self.__random_slice(audio, noise)
             audio_SNR = torch.tensor(
                 self.__sample_random_SNR(background_audio_type)
