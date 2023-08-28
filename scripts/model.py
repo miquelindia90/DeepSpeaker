@@ -35,6 +35,11 @@ class SpeakerClassifier(nn.Module):
                 parameters["feature_size"], outputChannel=parameters["kernel_size"]
             )
             self.front_end = Resnet34(parameters["kernel_size"])
+        elif parameters["front_end"] == "ResNet101":
+            self.vector_size = getResnetOutputDimension(
+                parameters["feature_size"], outputChannel=parameters["kernel_size"]
+            )
+            self.front_end = Resnet101(parameters["kernel_size"])
 
     def __initPoolingLayers(self, parameters):
         self.pooling_method = parameters["pooling_method"]
