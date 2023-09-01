@@ -79,7 +79,7 @@ With this script you will launch the model training with the default setup defin
 * Topologies (SOTA Models)
     - [x] [VGG](https://arxiv.org/pdf/1906.09890.pdf)
     - [x] [ResNet34](https://arxiv.org/pdf/1512.03385.pdf)
-    - [x] [ResNet101](https://arxiv.org/pdf/1512.03385.pdf) (Construction)
+    - [x] [ResNet101](https://arxiv.org/pdf/1512.03385.pdf)
     - [x] [RepVGG](https://arxiv.org/pdf/2101.03697.pdf) (Construction)
     - [x] [CAM++](https://arxiv.org/pdf/2303.00332.pdf) (Construction)
 * Pooling Functions
