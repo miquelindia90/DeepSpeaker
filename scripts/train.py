@@ -73,6 +73,7 @@ class Trainer:
         data_loader_parameters = {
             "batch_size": self.params["batch_size"],
             "shuffle": True,
+            "drop_last": True,
             "num_workers": self.params["num_workers"],
         }
         self.training_generator = DataLoader(
