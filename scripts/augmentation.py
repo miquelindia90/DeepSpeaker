@@ -6,7 +6,7 @@ import torchaudio.functional as functional
 
 
 class DataAugmentator:
-    EFFECTS = ["apply_reverb", "add_background_noise"]
+    EFFECTS = ["apply_speed_perturbation", "apply_reverb", "add_background_noise"]
     SPEEDS = ["0.9", "1.", "1.1"]
     SNR_NOISE_RANGE = [0, 15]
     SNR_SPEECH_RANGE = [10, 30]
@@ -94,6 +94,5 @@ class DataAugmentator:
             self.rirs_list = handle.readlines()
 
     def augment(self, audio, sample_rate):
-        audio = self.apply_speed_perturbation(audio, sample_rate)
         effect = random.choice(self.EFFECTS)
         return getattr(self, effect)(audio, sample_rate)
