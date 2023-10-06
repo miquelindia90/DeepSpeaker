@@ -5,10 +5,12 @@ import yaml
 import torch
 import numpy as np
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 sys.path.append("./scripts")
 from model import *
 from data import *
+from utils import calculate_EER
 
 TRIALS_LIST = ["Vox1", "Vox1_H", "Vox1_E"]
 
@@ -30,6 +32,33 @@ def extract_vox_celeb_scores(model_path, data_directory, net, device):
         output_file = f"{model_path}/{trial}_scores.txt"
         trials = f"vox-celeb-evaluation/{trial}_trials.txt"
         extract_scores(data_directory, net, device, output_file, trials)
+
+
+def analyse_vox_celeb_scores(model_path):
+    for trial in TRIALS_LIST:
+        output_file = f"{model_path}/{trial}_scores.txt"
+        evaluate_scores(model_path, trial, output_file)
+
+
+def evaluate_scores(model_path, trial, output_file):
+    client_scores = []
+    impostor_scores = []
+    with open(output_file, "r") as handle:
+        for line in handle.readlines():
+            sline = line.strip().split()
+            score = float(sline[0])
+            ground_truth = sline[1]
+            if ground_truth == "1":
+                client_scores.append(score)
+            else:
+                impostor_scores.append(score)
+
+    eer = calculate_EER(client_scores, impostor_scores)
+    plt.hist(np.array(client_scores), bins=100, label="clients", alpha=0.7)
+    plt.hist(np.array(impostor_scores), bins=100, label="impostors", alpha=0.7)
+    plt.legend()
+    plt.title(trial + " Scores: EER: " + str(round(eer, 2)))
+    plt.savefig(model_path + "/" + trial + "evaluation_scores.png")
 
 
 def extract_scores(data_directory, net, device, output_file, trials):
@@ -72,8 +101,9 @@ def main(model_params, params):
     net.to(device)
     net.eval()
 
-    extract_vox_celeb_scores(params.model_path, params.data_directory, net, device)
-
+    if not params.skip_extraction:
+        extract_vox_celeb_scores(params.model_path, params.data_directory, net, device)
+    analyse_vox_celeb_scores(params.model_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="score a trained model")
@@ -84,6 +114,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--model_path", type=str, required=True)
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"])
+    parser.add_argument("--skip_extraction", action="store_true")
 
     params = parser.parse_args()
 
