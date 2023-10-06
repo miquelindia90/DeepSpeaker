@@ -111,8 +111,8 @@ if __name__ == "__main__":
         "--trials_data_directory",
         type=dict,
         default={"Vox1": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav",
-                "Vox1_H": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/test",
-                "Vox1_E": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/test"},
+                "Vox1_H": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav",
+                "Vox1_E": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav"},
     )
     parser.add_argument("--model_path", type=str, required=True)
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"])
