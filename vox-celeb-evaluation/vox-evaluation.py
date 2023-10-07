@@ -52,13 +52,13 @@ def evaluate_scores(model_path, trial, output_file):
             else:
                 impostor_scores.append(score)
 
-    print(client_scores)
     eer = calculate_EER(client_scores, impostor_scores)
     plt.hist(np.array(client_scores), bins=100, label="clients", alpha=0.7)
     plt.hist(np.array(impostor_scores), bins=100, label="impostors", alpha=0.7)
     plt.legend()
     plt.title(trial + " Scores: EER: " + str(round(eer, 2)))
-    plt.savefig(model_path + "/" + trial + "evaluation_scores.png")
+    plt.savefig(model_path + "/" + trial + "_evaluation_scores.png")
+    plt.close()
 
 
 def extract_scores(data_directory, net, device, output_file, trials):
