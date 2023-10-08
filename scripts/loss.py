@@ -28,24 +28,27 @@ class AMSoftmax(nn.Module):
         return costh_combined / (1 + alpha)
 
     def forward(self, x, label=None, step=0):
-        assert x.size()[0] == label.size()[0]
+        if label is not None:
+            assert x.size()[0] == label.size()[0]
         assert x.size()[1] == self.in_feats
         x_norm = torch.norm(x, p=2, dim=1, keepdim=True).clamp(min=1e-12)
         x_norm = torch.div(x, x_norm)
         w_norm = torch.norm(self.W, p=2, dim=0, keepdim=True).clamp(min=1e-12)
         w_norm = torch.div(self.W, w_norm)
         costh = torch.mm(x_norm, w_norm)
-        label_view = label.view(-1, 1)
-        if label_view.is_cuda:
-            label_view = label_view.cpu()
-        delt_costh = torch.zeros(costh.size()).scatter_(1, label_view, self.m)
-        if x.is_cuda:
-            delt_costh = delt_costh.cuda()
-        costh_m = costh - delt_costh
-        costh_combined = self.__getCombinedCosth(costh, costh_m)
-        costh_m_s = self.s * costh_combined
-        return costh, costh_m_s
-
+        if label is not None:
+            label_view = label.view(-1, 1)
+            if label_view.is_cuda:
+                label_view = label_view.cpu()
+            delt_costh = torch.zeros(costh.size()).scatter_(1, label_view, self.m)
+            if x.is_cuda:
+                delt_costh = delt_costh.cuda()
+            costh_m = costh - delt_costh
+            costh_combined = self.__getCombinedCosth(costh, costh_m)
+            costh_m_s = self.s * costh_combined
+            return costh, costh_m_s
+        else:
+            return costh, None
 
 class FocalSoftmax(nn.Module):
     """
