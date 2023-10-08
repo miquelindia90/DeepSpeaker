@@ -43,9 +43,11 @@ def evaluate_scores(model_path, trial, output_file):
     client_scores_embedding1 = list()
     client_scores_embedding2 = list()
     client_scores_embedding3 = list()
+    client_scores_embedding4 = list()
     impostor_scores_embedding1 = list()
     impostor_scores_embedding2 = list()
     impostor_scores_embedding3 = list()
+    impostor_scores_embedding4 = list()
 
     with open(output_file, "r") as handle:
         for line in handle.readlines():
@@ -54,18 +56,22 @@ def evaluate_scores(model_path, trial, output_file):
             score1 = float(sline[3])
             score2 = float(sline[4])
             score3 = float(sline[5])
+            score4 = float(sline[6])
             if ground_truth == "1":
                 client_scores_embedding1.append(score1)
                 client_scores_embedding2.append(score2)
                 client_scores_embedding3.append(score3)
+                client_scores_embedding4.append(score4)
             else:
                 impostor_scores_embedding1.append(score1)
                 impostor_scores_embedding2.append(score2)
                 impostor_scores_embedding3.append(score3)
+                impostor_scores_embedding4.append(score4)
 
     plot_scores(client_scores_embedding1, impostor_scores_embedding1, model_path, trial, "embedding1")
     plot_scores(client_scores_embedding2, impostor_scores_embedding2, model_path, trial, "embedding2")
     plot_scores(client_scores_embedding3, impostor_scores_embedding3, model_path, trial, "embedding3")
+    plot_scores(client_scores_embedding4, impostor_scores_embedding4, model_path, trial, "embedding4")
 
 def plot_scores(client_scores, impostor_scores, model_path, trial, embedding_name):
 
@@ -85,10 +91,10 @@ def extract_scores(data_directory, net, device, output_file, trials):
             lines = tqdm(handle.readlines())
             for idx, line in enumerate(lines):
                 sline = line.strip().split()
-                embedding11, embedding12, embedding13 = get_audio_embeddings(
+                embedding11, embedding12, embedding13, embedding14 = get_audio_embeddings(
                     data_directory + "/" + sline[1], net, device
                 )
-                embedding21, embedding22, embedding23 = get_audio_embeddings(
+                embedding21, embedding22, embedding23, embedding24 = get_audio_embeddings(
                     data_directory + "/" + sline[2], net, device
                 )
                 score1 = (
@@ -100,14 +106,18 @@ def extract_scores(data_directory, net, device, output_file, trials):
                 score3 = (
                     torch.nn.functional.cosine_similarity(embedding13, embedding23) + 1
                 ) / 2
+                score4 = (
+                    torch.nn.functional.cosine_similarity(embedding14, embedding24) + 1
+                ) / 2
                 output.write(
-                    "{} {} {} {} {} {}\n".format(
+                    "{} {} {} {} {} {} {}\n".format(
                         sline[0],
                         sline[1],
                         sline[2],
                         str(score1.item()),
                         str(score2.item()),
                         str(score3.item()),
+                        str(score4.item()),
                     )
                 )
                 lines.set_description(f"Processing...")
