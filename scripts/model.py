@@ -83,8 +83,9 @@ class SpeakerClassifier(nn.Module):
         embedding1 = F.relu(self.fc1(embedding0))
         embedding2 = self.b2(F.relu(self.fc2(embedding1)))
         embedding3 = self.preLayer(embedding2)
+        prediction, ouputTensor = self.predictionLayer(embedding3)
 
-        return embedding1, embedding2, embedding3
+        return embedding1, embedding2, embedding3, prediction
 
     def forward(self, x, label=None):
         encoder_output = self.front_end(x)
