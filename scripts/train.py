@@ -152,9 +152,7 @@ class Trainer:
 
             print(
                 "--Validation Epoch:{epoch: d}, EER:{eer: 3.3f}, elapse:{elapse: 3.3f} min".format(
-                    epoch=self.epoch,
-                    eer=EER,
-                    elapse=(time.time() - valid_time) / 60,
+                    epoch=self.epoch, eer=EER, elapse=(time.time() - valid_time) / 60,
                 )
             )
             # early stopping and save the best model

@@ -50,6 +50,7 @@ class AMSoftmax(nn.Module):
         else:
             return costh, None
 
+
 class FocalSoftmax(nn.Module):
     """
     Focal softmax as proposed in:

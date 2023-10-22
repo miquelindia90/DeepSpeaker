@@ -38,7 +38,6 @@ class ResnetBlock(torch.nn.Module):
         return out
 
 
-
 class Resnet(torch.nn.Module):
     def __init__(self, kernel_size, group_blocks):
         super(Resnet, self).__init__()
@@ -96,6 +95,7 @@ class Resnet(torch.nn.Module):
 
         return outputTensor
 
+
 class Resnet34(Resnet):
     def __init__(self, kernel_size):
         super(Resnet34, self).__init__(kernel_size, [3, 4, 6, 3])
@@ -104,4 +104,3 @@ class Resnet34(Resnet):
 class Resnet101(Resnet):
     def __init__(self, kernel_size):
         super(Resnet101, self).__init__(kernel_size, [3, 4, 23, 3])
-
