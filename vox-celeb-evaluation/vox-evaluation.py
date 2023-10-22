@@ -170,7 +170,7 @@ def main(model_params, params):
     net.eval()
 
     for trials_name, data_directory in params.trials_data_directory.items():
-        print(f"Trials Protocol: {trials_name}\n")
+        print(f"\nTrials Protocol: {trials_name}")
         if not params.skip_extraction:
             extract_vox_celeb_scores(
                 params.model_path, trials_name, data_directory, net, device
