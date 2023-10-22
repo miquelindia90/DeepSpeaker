@@ -12,6 +12,7 @@ from model import SpeakerClassifier
 from data import feature_extractor
 from utils import calculate_EER
 
+
 def prepareInput(features, device):
     inputs = torch.FloatTensor(features)
     inputs = inputs.to(device)
@@ -24,6 +25,7 @@ def get_audio_embeddings(audioPath, net, device):
     with torch.no_grad():
         networkInputs = prepareInput(features, device)
         return net.getEmbeddings(networkInputs)
+
 
 def extract_vox_celeb_scores(model_path, trials_data_directory, net, device):
 
@@ -68,10 +70,35 @@ def evaluate_scores(model_path, trial, output_file):
                 impostor_scores_embedding3.append(score3)
                 impostor_scores_embedding4.append(score4)
 
-    plot_scores(client_scores_embedding1, impostor_scores_embedding1, model_path, trial, "embedding1")
-    plot_scores(client_scores_embedding2, impostor_scores_embedding2, model_path, trial, "embedding2")
-    plot_scores(client_scores_embedding3, impostor_scores_embedding3, model_path, trial, "embedding3")
-    plot_scores(client_scores_embedding4, impostor_scores_embedding4, model_path, trial, "embedding4")
+    plot_scores(
+        client_scores_embedding1,
+        impostor_scores_embedding1,
+        model_path,
+        trial,
+        "embedding1",
+    )
+    plot_scores(
+        client_scores_embedding2,
+        impostor_scores_embedding2,
+        model_path,
+        trial,
+        "embedding2",
+    )
+    plot_scores(
+        client_scores_embedding3,
+        impostor_scores_embedding3,
+        model_path,
+        trial,
+        "embedding3",
+    )
+    plot_scores(
+        client_scores_embedding4,
+        impostor_scores_embedding4,
+        model_path,
+        trial,
+        "embedding4",
+    )
+
 
 def plot_scores(client_scores, impostor_scores, model_path, trial, embedding_name):
 
@@ -80,23 +107,31 @@ def plot_scores(client_scores, impostor_scores, model_path, trial, embedding_nam
     plt.hist(np.array(impostor_scores), bins=100, label="impostors", alpha=0.7)
     plt.legend()
     plt.title(trial + " Scores: EER: " + str(round(eer, 2)))
-    plt.savefig(model_path + "/" + trial + "_" + embedding_name + "_evaluation_scores.png")
+    plt.savefig(
+        model_path + "/" + trial + "_" + embedding_name + "_evaluation_scores.png"
+    )
     plt.close()
 
 
 def extract_scores(data_directory, net, device, output_file, trials):
-    
+
     with open(output_file, "w") as output:
         with open(trials, "r") as handle:
             lines = tqdm(handle.readlines())
             for idx, line in enumerate(lines):
                 sline = line.strip().split()
-                embedding11, embedding12, embedding13, embedding14 = get_audio_embeddings(
-                    data_directory + "/" + sline[1], net, device
-                )
-                embedding21, embedding22, embedding23, embedding24 = get_audio_embeddings(
-                    data_directory + "/" + sline[2], net, device
-                )
+                (
+                    embedding11,
+                    embedding12,
+                    embedding13,
+                    embedding14,
+                ) = get_audio_embeddings(data_directory + "/" + sline[1], net, device)
+                (
+                    embedding21,
+                    embedding22,
+                    embedding23,
+                    embedding24,
+                ) = get_audio_embeddings(data_directory + "/" + sline[2], net, device)
                 score1 = (
                     torch.nn.functional.cosine_similarity(embedding11, embedding21) + 1
                 ) / 2
@@ -137,17 +172,22 @@ def main(model_params, params):
     net.eval()
 
     if not params.skip_extraction:
-        extract_vox_celeb_scores(params.model_path, params.trials_data_directory, net, device)
+        extract_vox_celeb_scores(
+            params.model_path, params.trials_data_directory, net, device
+        )
     analyse_vox_celeb_scores(params.trials_data_directory.keys(), params.model_path)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="score a trained model")
     parser.add_argument(
         "--trials_data_directory",
         type=dict,
-        default={"Vox1": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav",
-                "Vox1_H": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav",
-                "Vox1_E": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav"},
+        default={
+            "Vox1": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav",
+            "Vox1_H": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav",
+            "Vox1_E": "/home/usuaris/scratch/speaker_databases/VoxCeleb-1/wav",
+        },
     )
     parser.add_argument("--model_path", type=str, required=True)
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"])
