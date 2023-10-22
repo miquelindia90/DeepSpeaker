@@ -27,18 +27,16 @@ def get_audio_embeddings(audioPath, net, device):
         return net.getEmbeddings(networkInputs)
 
 
-def extract_vox_celeb_scores(model_path, trials_data_directory, net, device):
+def extract_vox_celeb_scores(model_path, trials_name, data_directory, net, device):
 
-    for trials, data_directory in trials_data_directory.items():
-        output_file = f"{model_path}/{trials}_scores.txt"
-        trials = f"vox-celeb-evaluation/{trials}_trials.txt"
-        extract_scores(data_directory, net, device, output_file, trials)
+    output_file = f"{model_path}/{trials_name}_scores.txt"
+    trials = f"vox-celeb-evaluation/{trials_name}_trials.txt"
+    extract_scores(data_directory, net, device, output_file, trials)
 
 
-def analyse_vox_celeb_scores(trials_list, model_path):
-    for trials in trials_list:
-        output_file = f"{model_path}/{trials}_scores.txt"
-        evaluate_scores(model_path, trials, output_file)
+def analyse_vox_celeb_scores(trials_name, model_path):
+    output_file = f"{model_path}/{trials_name}_scores.txt"
+    evaluate_scores(model_path, trials_name, output_file)
 
 
 def evaluate_scores(model_path, trial, output_file):
@@ -171,11 +169,13 @@ def main(model_params, params):
     net.to(device)
     net.eval()
 
-    if not params.skip_extraction:
-        extract_vox_celeb_scores(
-            params.model_path, params.trials_data_directory, net, device
-        )
-    analyse_vox_celeb_scores(params.trials_data_directory.keys(), params.model_path)
+    for trials_name, data_directory in params.trials_data_directory.items():
+        print(f"Trials Protocol: {trials_name}\n")
+        if not params.skip_extraction:
+            extract_vox_celeb_scores(
+                params.model_path, trials_name, data_directory, net, device
+            )
+        analyse_vox_celeb_scores(trials_name, params.model_path)
 
 
 if __name__ == "__main__":
