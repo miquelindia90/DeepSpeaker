@@ -1,49 +1,35 @@
-# I/O Parameters
-
-train_data_dir: "/scratch/speaker_databases/VoxCeleb-2/dev"
-valid_data_dir: "/scratch/speaker_databases/VoxSRC2023/dev"
-train_labels_path: "labels/sc_labels.ndx"
-valid_clients: "labels/2023_val_clients.ndx"
-valid_impostors: "labels/2023_val_impostors.ndx"
-out_dir: "models/thinresnet34_augmentation"
-model_name: "CNN"
-requeue: False
-
-# Augmentation Parameters
-
-augmentation_data_dir: "/scratch/speaker_databases/musan"
-rirs_data_dir: "/scratch/speaker_databases/RIRS_NOISES"
-augmentation_labels_path: "labels/musan_labels.lst"
-rirs_labels_path: "labels/rirs.lst"
-augmentation_prob: 0.75 # Probability of applying augmentation to a sample. 0 means no augmentation.
-
-# Network Parameters
-
-front_end: "ResNet34"
+train_data_dir: /home/usuaris/scratch/speaker_databases/VoxCeleb-2/dev
+valid_data_dir: /home/usuaris/scratch/speaker_databases/VoxSRC2023/dev
+train_labels_path: labels/sc_labels.ndx
+valid_clients: labels/2023_val_clients.ndx
+valid_impostors: labels/2023_val_impostors.ndx
+out_dir: models/resnet34_75prob_MHA_8_AttActivation
+model_name: CNN
+requeue: false
+augmentation_data_dir: /home/usuaris/scratch/speaker_databases/musan
+rirs_data_dir: /home/usuaris/scratch/speaker_databases/RIRS_NOISES
+augmentation_labels_path: labels/musan_labels.lst
+rirs_labels_path: labels/rirs.lst
+augmentation_prob: 0.75
+front_end: ResNet34
+activation: Attention-Based
 window_size: 3.5
-kernel_size: 256
+kernel_size: 512
 embedding_size: 400
-heads_number: 16
-pooling_method: "Attention"
+heads_number: 8
+pooling_method: MHA
 mask_prob: 0.25
-
-# AMSoftmax Config
-
 scalingFactor: 30.0
 marginFactor: 0.4
-
-# Optimization
-
-optimizer: "Adam"
+optimizer: Adam
 learning_rate: 0.0001
 weight_decay: 0.001
-batch_size: 128
-gradientAccumulation: 1
+batch_size: 64
+gradientAccumulation: 2
 max_epochs: 500
 early_stopping: 25
 num_workers: 4
 scheduler_lr_epochs: 5
 scheduler_lr_gamma: 0.5
-
-# Logging
 print_metric_window: 1000
+num_spkrs: 5964
