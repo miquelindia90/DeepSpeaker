@@ -12,7 +12,7 @@ augmentation_labels_path: labels/musan_labels.lst
 rirs_labels_path: labels/rirs.lst
 augmentation_prob: 0.75
 front_end: ResNet34
-activation: Attention-Based
+activation: Attention
 window_size: 3.5
 kernel_size: 512
 embedding_size: 400
