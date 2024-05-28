@@ -15,7 +15,7 @@ def getVGGOutputDimension(inputDimension, outputChannel=128):
 
 
 class VGG4L(torch.nn.Module):
-    def __init__(self, kernel_size, activation="relu"):
+    def __init__(self, kernel_size, activation="Relu"):
         super(VGG4L, self).__init__()
 
         self.conv11 = torch.nn.Conv2d(1, int(kernel_size / 8), 3, stride=1, padding=1)
@@ -40,6 +40,7 @@ class VGG4L(torch.nn.Module):
         self.conv42 = torch.nn.Conv2d(
             int(kernel_size), int(kernel_size), 3, stride=1, padding=1
         )
+        self.activation = torch.nn.ReLU() if activation == "Attention" else torch.nn.ReLU()
 
     def forward(self, paddedInputTensor):
         paddedInputTensor = paddedInputTensor.view(
@@ -49,26 +50,26 @@ class VGG4L(torch.nn.Module):
             paddedInputTensor.size(2),
         ).transpose(1, 2)
 
-        encodedTensorLayer1 = F.relu(self.conv11(paddedInputTensor))
-        encodedTensorLayer1 = F.relu(self.conv12(encodedTensorLayer1))
+        encodedTensorLayer1 = self.activation(self.conv11(paddedInputTensor))
+        encodedTensorLayer1 = self.activation(self.conv12(encodedTensorLayer1))
         encodedTensorLayer1 = F.max_pool2d(
             encodedTensorLayer1, 2, stride=2, ceil_mode=True
         )
 
-        encodedTensorLayer2 = F.relu(self.conv21(encodedTensorLayer1))
-        encodedTensorLayer2 = F.relu(self.conv22(encodedTensorLayer2))
+        encodedTensorLayer2 = self.activation(self.conv21(encodedTensorLayer1))
+        encodedTensorLayer2 = self.activation(self.conv22(encodedTensorLayer2))
         encodedTensorLayer2 = F.max_pool2d(
             encodedTensorLayer2, 2, stride=2, ceil_mode=True
         )
 
-        encodedTensorLayer3 = F.relu(self.conv31(encodedTensorLayer2))
-        encodedTensorLayer3 = F.relu(self.conv32(encodedTensorLayer3))
+        encodedTensorLayer3 = self.activation(self.conv31(encodedTensorLayer2))
+        encodedTensorLayer3 = self.activation(self.conv32(encodedTensorLayer3))
         encodedTensorLayer3 = F.max_pool2d(
             encodedTensorLayer3, 2, stride=2, ceil_mode=True
         )
 
-        encodedTensorLayer4 = F.relu(self.conv41(encodedTensorLayer3))
-        encodedTensorLayer4 = F.relu(self.conv42(encodedTensorLayer4))
+        encodedTensorLayer4 = self.activation(self.conv41(encodedTensorLayer3))
+        encodedTensorLayer4 = self.activation(self.conv42(encodedTensorLayer4))
         encodedTensorLayer4 = F.max_pool2d(
             encodedTensorLayer4, 2, stride=2, ceil_mode=True
         )
