@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -33,16 +35,17 @@ class AttentionActivation(nn.Module):
         
         attention_score = torch.matmul(pooled_vector, self.activations_embeddings).squeeze()
         attention_score = F.softmax(attention_score, dim=-1)
-
-        output_vector = torch.zeros_like(input_tensor)
+        
+        output_tensor = torch.zeros(input_tensor.size()).to(input_tensor.device)
         for activation_index, activation in enumerate(self.activations):
             activated_tensor = activation(input_tensor)
             weighted_activation = activated_tensor * attention_score[:, :, activation_index].unsqueeze(-1).unsqueeze(-1)
-            output_vector += weighted_activation
-        return output_vector
+            output_tensor += weighted_activation
+
+        return output_tensor
 
     def forward(self, ht):
 
         pooled_vector = self._get_pooling_embedding(ht)
-        output_vector = self._calculate_activation(ht, pooled_vector)
-        return output_vector
+        output_tensor = self._calculate_activation(ht, pooled_vector)
+        return output_tensor
