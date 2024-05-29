@@ -40,7 +40,7 @@ class VGG4L(torch.nn.Module):
         self.conv42 = torch.nn.Conv2d(
             int(kernel_size), int(kernel_size), 3, stride=1, padding=1
         )
-        self.activation = torch.nn.ReLU() if activation == "Attention" else torch.nn.ReLU()
+        self.activation = torch.nn.GELU() if activation == "GELU" else torch.nn.ReLU()
 
     def forward(self, paddedInputTensor):
         paddedInputTensor = paddedInputTensor.view(
