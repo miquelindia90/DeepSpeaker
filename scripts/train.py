@@ -14,9 +14,9 @@ from tqdm import tqdm
 
 sys.path.append("./scripts/")
 from data import Dataset, feature_extractor
-from model import SpeakerClassifier
+from topologies.model import SpeakerClassifier
+from scoring.utils import *
 from loss import *
-from utils import *
 
 
 class Trainer:

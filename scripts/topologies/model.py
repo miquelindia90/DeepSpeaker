@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from poolings import *
+from topologies.poolings import *
 from topologies.VGG import *
 from topologies.ResNet import *
 from loss import *
@@ -34,12 +34,12 @@ class SpeakerClassifier(nn.Module):
             self.vector_size = getResnetOutputDimension(
                 parameters["feature_size"], outputChannel=parameters["kernel_size"]
             )
-            self.front_end = Resnet34(parameters["kernel_size"])
+            self.front_end = Resnet34(parameters["kernel_size"], parameters["activation"])
         elif parameters["front_end"] == "ResNet101":
             self.vector_size = getResnetOutputDimension(
                 parameters["feature_size"], outputChannel=parameters["kernel_size"]
             )
-            self.front_end = Resnet101(parameters["kernel_size"])
+            self.front_end = Resnet101(parameters["kernel_size"], parameters["activation"])
 
     def __initPoolingLayers(self, parameters):
         self.pooling_method = parameters["pooling_method"]

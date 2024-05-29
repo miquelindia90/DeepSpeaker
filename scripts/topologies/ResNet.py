@@ -5,6 +5,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from topologies.activations import AttentionActivation	
+
 
 def getResnetOutputDimension(inputDimension, outputChannel=128):
     outputDimension = np.ceil(np.array(inputDimension, dtype=np.float32) / 2)
@@ -15,7 +17,7 @@ def getResnetOutputDimension(inputDimension, outputChannel=128):
 
 
 class ResnetBlock(torch.nn.Module):
-    def __init__(self, kernel_size_input, kernel_size, activation):
+    def __init__(self, kernel_size_input, kernel_size, activation, input_size):
         super(ResnetBlock, self).__init__()
         self.conv1 = torch.nn.Conv2d(
             kernel_size_input, kernel_size, 3, stride=1, padding=1
@@ -23,8 +25,8 @@ class ResnetBlock(torch.nn.Module):
         self.bn1 = torch.nn.BatchNorm2d(kernel_size)
         self.conv2 = torch.nn.Conv2d(kernel_size, kernel_size, 3, stride=1, padding=1)
         self.bn2 = torch.nn.BatchNorm2d(kernel_size)
-        self.activation1 = torch.nn.GELU() if activation=="Attention" else torch.nn.GELU()
-        self.activation2 = torch.nn.GELU() if activation=="Attention" else torch.nn.GELU()
+        self.activation1 = AttentionActivation(input_size) if activation=="Attention" else torch.nn.GELU()
+        self.activation2 = AttentionActivation(input_size) if activation=="Attention" else torch.nn.GELU()
         self.residual_condition = True if kernel_size_input == kernel_size else False
 
     def forward(self, x):
@@ -40,7 +42,7 @@ class ResnetBlock(torch.nn.Module):
 
 
 class Resnet(torch.nn.Module):
-    def __init__(self, kernel_size, group_blocks, activation="Relu"):
+    def __init__(self, kernel_size, group_blocks, activation="Relu", input_size=80):
         super(Resnet, self).__init__()
         self.group_blocks = group_blocks
         self.group_kernels = [
@@ -49,29 +51,30 @@ class Resnet(torch.nn.Module):
             kernel_size // 2,
             kernel_size,
         ]
+        self.input_size = input_size
         self.__init_blocks(activation)
 
-    def __init_resnet_group(self, input_kernel_size, kernel_size, num_blocks, activation):
+    def __init_resnet_group(self, input_kernel_size, kernel_size, num_blocks, activation, input_size):
         layers = OrderedDict()
-        layers["block0"] = ResnetBlock(input_kernel_size, kernel_size, activation)
+        layers["block0"] = ResnetBlock(input_kernel_size, kernel_size, activation, input_size)
         for i in range(num_blocks - 1):
-            layers["block" + str(i + 1)] = ResnetBlock(kernel_size, kernel_size, activation)
+            layers["block" + str(i + 1)] = ResnetBlock(kernel_size, kernel_size, activation, input_size)
         return torch.nn.Sequential(layers)
 
     def __init_blocks(self, activation):
         self.maxpool = torch.nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True)
 
         self.block1 = self.__init_resnet_group(
-            1, self.group_kernels[0], self.group_blocks[0], activation
+            1, self.group_kernels[0], self.group_blocks[0], activation, self.input_size
         )
         self.block2 = self.__init_resnet_group(
-            self.group_kernels[0], self.group_kernels[1], self.group_blocks[1], activation
+            self.group_kernels[0], self.group_kernels[1], self.group_blocks[1], activation, self.input_size//2
         )
         self.block3 = self.__init_resnet_group(
-            self.group_kernels[1], self.group_kernels[2], self.group_blocks[2], activation
+            self.group_kernels[1], self.group_kernels[2], self.group_blocks[2], activation, self.input_size//4
         )
         self.block4 = self.__init_resnet_group(
-            self.group_kernels[2], self.group_kernels[3], self.group_blocks[3], activation
+            self.group_kernels[2], self.group_kernels[3], self.group_blocks[3], activation, self.input_size//8
         )
 
     def forward(self, paddedInputTensor):
@@ -98,10 +101,10 @@ class Resnet(torch.nn.Module):
 
 
 class Resnet34(Resnet):
-    def __init__(self, kernel_size, activation="Relu"):
-        super(Resnet34, self).__init__(kernel_size, [3, 4, 6, 3], activation)
+    def __init__(self, kernel_size, activation="Relu", input_size=80):
+        super(Resnet34, self).__init__(kernel_size, [3, 4, 6, 3], activation, input_size)
 
 
 class Resnet101(Resnet):
-    def __init__(self, kernel_size, activation="Relu"):
-        super(Resnet101, self).__init__(kernel_size, [3, 4, 23, 3], activation)
+    def __init__(self, kernel_size, activation="Relu", input_size=80):
+        super(Resnet101, self).__init__(kernel_size, [3, 4, 23, 3], activation, input_size)
